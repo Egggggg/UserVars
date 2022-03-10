@@ -1,11 +1,17 @@
-export type Comparison = "eq" | "lt" | "gt" | "in";
-export type Priority = "first" | "last";
-export type BasicType = "var" | "literal";
+type Comparison = "eq" | "lt" | "gt" | "in";
+type Priority = "first" | "last";
+type BasicType = "var" | "literal";
 
+/**
+ * Mapping of variables to their dependents
+ */
 export interface Deps {
     [key: string]: string[];
 }
 
+/**
+ * Generic variable data
+ */
 export interface RawVar {
     name: string;
     scope: string;
@@ -13,19 +19,31 @@ export interface RawVar {
     varType: "basic" | "list" | "table";
 }
 
+/**
+ * Evaluates to either another variable's value or a string
+ */
 export interface BasicVar extends RawVar {
     value: string;
     basicType: "var" | "literal";
     varType: "basic";
 }
 
+/**
+ * Value for list items and table outputs, will be evaluated to a BasicVar
+ */
 export type Value = BasicVar | string
 
+/**
+ * Evaluates to an array of BasicVars
+ */
 export interface ListVar extends RawVar {
     value: Value[];
     varType: "list";
 }
 
+/**
+ * Condition for table rows, the row is output if this is true
+ */
 export interface Condition {
     val1: Value;
     comparison: Comparison

@@ -7,7 +7,7 @@ import { Deps, RawVars, Vars } from "./index.d";
  * @property {boolean}  globalRoot - True if the global variables are contained at the root level, else false
  * @property {RawVars}  rawVars    - Raw, unevaluated variable data
  * @property {string[]} scopes     - List of scopes currently in use
- * @property {Vars}     vars       - Evaluated variables, maps name to string value
+ * @property {Vars}     vars       - Evaluated variables, maps name to string or array value
  */
 export default class UserVars {
     deps: Deps;
@@ -30,7 +30,7 @@ export default class UserVars {
     }
 
     /**
-     * @function          getPath         s- Gets the path to a variable from its scope and name
+     * Gets the path to a variable from its scope and name
      * @param    {string} name            - The name of the variable
      * @param    {string} [scope="global] - The scope of the variable
      */
