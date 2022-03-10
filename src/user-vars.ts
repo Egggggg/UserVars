@@ -42,8 +42,14 @@ export default class UserVars {
         this.vars[scope] = this.vars[scope] || [];
     }
 
+    /**
+     * Adds the passed variable to the list. This is done automatically with the build methods
+     * @param {RawVar} variable - Variable to add to the list
+     */
     addVar(variable: RawVar) {
+        this.#addScope(variable.scope);
 
+        this.rawVars[variable.scope][variable.name] = variable;
     }
 
     /**
