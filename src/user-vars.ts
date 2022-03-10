@@ -1,4 +1,4 @@
-import { Deps, RawVars, Vars } from "./index.d";
+import { Deps, RawVar, RawVars, Vars } from "./index.d";
 
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
@@ -7,7 +7,7 @@ import { Deps, RawVars, Vars } from "./index.d";
  * @property {boolean}  globalRoot - True if the global variables are contained at the root level, else false
  * @property {RawVars}  rawVars    - Raw, unevaluated variable data
  * @property {string[]} scopes     - List of scopes currently in use
- * @property {Vars}     vars       - Evaluated variables, maps name to string or array value
+ * @property {Vars}     vars       - Evaluated variables, maps name to string value
  */
 export default class UserVars {
     deps: Deps;
@@ -18,7 +18,7 @@ export default class UserVars {
 
     /**
      * Creates a new UserVars object for holding user defined dynamic variables
-     * @param    {boolean} globalRoot  - True if the global variables are contained at the root level, else false
+     * @param {boolean} globalRoot  - True if the global variables are contained at the root level, else false
      */
     constructor(globalRoot: boolean) {
         this.globalRoot = Boolean(globalRoot);
@@ -30,9 +30,26 @@ export default class UserVars {
     }
 
     /**
+     * Adds the passed scope to the list. This is done automatically with addVar and the build methods
+     * @param {string} scope - Name of the scope to add to the list
+     */
+    #addScope(scope: string) {
+        if (this.scopes.indexOf(scope) === -1) {
+            this.scopes.push(scope);
+        }
+
+        this.rawVars[scope] = this.rawVars[scope] || [];
+        this.vars[scope] = this.vars[scope] || [];
+    }
+
+    addVar(variable: RawVar) {
+
+    }
+
+    /**
      * Gets the path to a variable from its scope and name
-     * @param    {string} name            - The name of the variable
-     * @param    {string} [scope="global] - The scope of the variable
+     * @param {string} name             - The name of the variable
+     * @param {string} [scope="global"] - The scope of the variable
      */
     getPath(name: string, scope?: string) {
         if (!scope) {

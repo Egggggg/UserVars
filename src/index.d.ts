@@ -3,7 +3,7 @@ type Priority = "first" | "last";
 type BasicType = "var" | "literal";
 
 /**
- * Mapping of variables to their dependents
+ * Mapping of variable names to their dependents
  */
 export interface Deps {
     [key: string]: string[];
@@ -15,12 +15,12 @@ export interface Deps {
 export interface RawVar {
     name: string;
     scope: string;
-    value: any;
+    value: string | Value[] | TableRow[];
     varType: "basic" | "list" | "table";
 }
 
 /**
- * Evaluates to either another variable's value or a string
+ * Should evaluate to either another variable's value or a string
  */
 export interface BasicVar extends RawVar {
     value: string;
@@ -29,12 +29,12 @@ export interface BasicVar extends RawVar {
 }
 
 /**
- * Value for list items and table outputs, will be evaluated to a BasicVar
+ * Value for list items and table outputs, should evaluate to a BasicVar
  */
 export type Value = BasicVar | string
 
 /**
- * Evaluates to an array of BasicVars
+ * Should evaluate to an array of BasicVars
  */
 export interface ListVar extends RawVar {
     value: Value[];
@@ -50,11 +50,17 @@ export interface Condition {
     val2: Value | ListVar;
 }
 
+/**
+ * Row for table, should evaluate to `output`
+ */
 export interface TableRow {
     conditions: Condition[];
     output: Value;
 }
 
+/**
+ * Table variable, should evaluate to the single output of the first or last row where all conditions are true
+ */
 export interface TableVar extends RawVar {
     priority: Priority;
     default: Value;
@@ -62,51 +68,79 @@ export interface TableVar extends RawVar {
     varType: "table";
 }
 
+/**
+ * Array of RawVars under the same scope
+ */
 export interface RawScope {
     [name: string]: RawVar;
 }
 
+/**
+ * Array of RawVars in the global scope and RawScopes containing RawVars
+ */
 export interface RawVars {
     [name: string]: RawVar;
     [name: string]: RawScope;
 }
 
+/**
+ * Array of evaluated variables under the same scope
+ */
 export interface Scope {
-    [name: string]: string;
+    [name: string]: string | string[];
 }
 
+/**
+ * Array of evaluated variables in the global scope and Scopes containing other evaluated variables
+ */
 export interface Vars {
-    [name: string]: string;
+    [name: string]: string | string[];
     [scope: string]: Scope;
 }
 
+/**
+ * Object that should be deserialized into a BasicVar
+ */
 export interface BasicRecipe {
     value: string;
     basicType: "var" | "literal";
 }
 
+/**
+ * Object or string to deserialize into a BasicVar
+ */
 export type ValueRecipe = BasicRecipe | string
 
+/**
+ * Object that should be deserialized into a Condition
+ */
 export interface ConditionRecipe {
     val1: ValueRecipe;
     comparison: Comparison;
     val2: ValueRecipe | ValueRecipe[];
 }
 
+/**
+ * Object that should be deserialized into a TableRow
+ */
 export interface RowRecipe {
     conditions: ConditionRecipe[];
-    output: ValueRecipe;s
+    output: ValueRecipe;
 }
 
+/**
+ * Array of RowRecipes to deserialize into a TableVar
+ */
 export type TableRecipe = RowRecipe[];
 
-export class userVars {
+export class UserVars {
     deps: Deps;
+    globalRoot: boolean;
     rawVars: RawVars;
     scopes: string[]
     vars: Vars;
 
-    constructor(globalRoot: bool, vars: Object);
+    constructor(globalRoot: bool);
     addScope(name: string);
     addVar(variable: RawVar);
     bulkBuild(vars: Object);
