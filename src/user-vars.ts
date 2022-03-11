@@ -31,25 +31,59 @@ export default class UserVars {
 
     /**
      * Adds the passed scope to the list. This is done automatically with addVar and the build methods
-     * @param {string} scope - Name of the scope to add to the list
+     * @param {string}  scope     - Name of the scope to add to the list
+     * @param {boolean} overwrite - True if existing global variables with conflicting name should be overwritten
+     * @returns {boolean} True if scope was added or already existed
      */
-    #addScope(scope: string) {
+    #addScope(scope: string, overwrite: boolean = true) {
+        // scope is not in this.scopes
         if (this.scopes.indexOf(scope) === -1) {
-            this.scopes.push(scope);
+            // there is nothing at this.rawVars[scope]
+            // or
+            // overwrite is true and this.rawVars[scope] is a RawVar, not a RawScope
+            if (!this.rawVars[scope] || (overwrite && this.rawVars[scope]?.varType)) {
+                this.scopes.push(scope);
+                this.rawVars[scope] = {};
+                this.vars[scope] = {};
+
+                return true;
+            }
+        } else {
+            return true;
         }
 
-        this.rawVars[scope] = this.rawVars[scope] || [];
-        this.vars[scope] = this.vars[scope] || [];
+        return false;
     }
 
     /**
      * Adds the passed variable to the list. This is done automatically with the build methods
-     * @param {RawVar} variable - Variable to add to the list
+     * @param {RawVar}  variable  - Variable to add to the list
+     * @param {boolean} overwrite - True if existing variable with conflicting name or scope should be overwritten
+     * @returns {boolean} True if variable was added
      */
-    addVar(variable: RawVar) {
-        this.#addScope(variable.scope);
+    addVar(variable: RawVar, overwrite: boolean = true) {
+        // variable goes to root
+        if (variable.scope === "global" && this.globalRoot) {
+            // variable doesn't exist yet
+            if (!this.rawVars[variable.name]) {
+                this.rawVars[variable.name] = variable;
+                return true;
+            } else {
+                // variable exists and should be overwritten
+                if (overwrite) {
+                    this.rawVars[variable.name] = variable;
+                    return true;
+                }
+            }
 
-        this.rawVars[variable.scope][variable.name] = variable;
+            return false;
+        } else { // variable goes to a scope
+            this.#addScope(variable.scope, overwrite);
+
+            // rawVars[variable.scope] will always be a Scope object because if it isn't it will be made one by #addScope
+            // @ts-ignore
+            this.rawVars[variable.scope][variable.name] = variable;
+        }
     }
 
     /**
