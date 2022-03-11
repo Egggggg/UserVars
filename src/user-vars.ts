@@ -40,7 +40,7 @@ export default class UserVars {
         if (this.scopes.indexOf(scope) === -1) {
             // there is nothing at this.rawVars[scope]
             // or
-            // overwrite is true and this.rawVars[scope] is a RawVar, not a RawScope
+            // this.rawVars[scope] is a RawVar, not a RawScope, and should be overwritten
             if (!this.rawVars[scope] || (overwrite && this.rawVars[scope]?.varType)) {
                 this.scopes.push(scope);
                 this.rawVars[scope] = {};
@@ -49,9 +49,11 @@ export default class UserVars {
                 return true;
             }
         } else {
+            // scope already exists
             return true;
         }
 
+        // there is a global variable with the same name as scope, but cannot overwrite it
         return false;
     }
 
@@ -59,7 +61,7 @@ export default class UserVars {
      * Adds the passed variable to the list. This is done automatically with the build methods
      * @param {RawVar}  variable  - Variable to add to the list
      * @param {boolean} overwrite - True if existing variable with conflicting name or scope should be overwritten
-     * @returns {boolean} True if variable was added
+     * @returns {boolean} True if variable was set
      */
     addVar(variable: RawVar, overwrite: boolean = true) {
         // variable goes to root
@@ -97,6 +99,7 @@ export default class UserVars {
         }
 
         if (scope !== "global") {
+            // return to global
             if (name.startsWith("../")) {
                 name = name.replace("../", "");
 
