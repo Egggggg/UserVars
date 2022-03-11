@@ -98,11 +98,16 @@ export default class UserVars {
 
         if (scope !== "global") {
             if (name.startsWith("../")) {
-                if (this.globalRoot) {
-                    return name.replace("../", "");
+                name = name.replace("../", "");
+
+                // global is root, so return the name at root
+                // or
+                // name already includes a scope, so include it
+                if (this.globalRoot || name.indexOf(".") > -1) {
+                    return name;
                 }
 
-                return `global.${name.replace("../", "")}`;
+                return `global.${name}`;
             }
 
             return `${scope}.${name}`;
