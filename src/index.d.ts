@@ -139,10 +139,11 @@ export class UserVars {
     vars: Vars;
 
     constructor(globalRoot: bool);
-    addScope(name: string, overwrite: boolean = true);
-    addVar(variable: RawVar, overwrite: boolean = true);
+    addScope(name: string, overwrite: boolean = true): boolean;
+    addVar(value: RawVar, overwrite: boolean = true): boolean;
     bulkBuild(vars: Object);
     buildBasic(value: {name: string, value: string, basicType: "var" | "literal"});
     buildList(value: {name: string, value: ValueRecipe[]});
     buildTable(value: {name: string, value: TableRecipe, default: ValueRecipe, priority: Priority});
+    evaluate(value: RawVar): string | string[];
 }
