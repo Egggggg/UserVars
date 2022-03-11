@@ -79,8 +79,7 @@ export interface RawScope {
  * Array of RawVars in the global scope and RawScopes containing RawVars
  */
 export interface RawVars {
-    [name: string]: RawVar;
-    [name: string]: RawScope;
+    [name: string]: RawVar | RawScope;
 }
 
 /**
@@ -94,8 +93,7 @@ export interface Scope {
  * Array of evaluated variables in the global scope and Scopes containing other evaluated variables
  */
 export interface Vars {
-    [name: string]: string | string[];
-    [scope: string]: Scope;
+    [name: string]: string | string[] | Scope;
 }
 
 /**
@@ -141,8 +139,8 @@ export class UserVars {
     vars: Vars;
 
     constructor(globalRoot: bool);
-    addScope(name: string);
-    addVar(variable: RawVar);
+    addScope(name: string, overwrite: boolean = true);
+    addVar(variable: RawVar, overwrite: boolean = true);
     bulkBuild(vars: Object);
     buildBasic(value: {name: string, value: string, basicType: "var" | "literal"});
     buildList(value: {name: string, value: ValueRecipe[]});
