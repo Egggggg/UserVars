@@ -25,6 +25,10 @@ describe("globalRoot = true", () => {
 		test("scope and name", () => {
 			expect(userVars.getPath("var", "scope")).toBe("scope.var");
 		});
+
+		test("sibling scope", () => {
+			expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
+		});
 	});
 });
 
@@ -52,6 +56,10 @@ describe("globalRoot = false", () => {
 
 		test("scope and name", () => {
 			expect(userVars.getPath("var", "scope")).toBe("scope.var");
+		});
+
+		test("sibling scope", () => {
+			expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
 		});
 	});
 });
