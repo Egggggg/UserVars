@@ -1,4 +1,5 @@
-import { BasicVar, Deps, ListVar, RawVar, RawVars, TableVar, Vars } from "./index.d";
+import {BasicVar, Deps, ListVar, RawVar, RawVars, TableVar, Vars} from "./index.d";
+import {get} from "lodash";
 
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
@@ -10,137 +11,259 @@ import { BasicVar, Deps, ListVar, RawVar, RawVars, TableVar, Vars } from "./inde
  * @property {Vars}     vars       - Evaluated variables, maps name to string value
  */
 export default class UserVars {
-    deps: Deps;
-    globalRoot: boolean;
-    rawVars: RawVars;
-    scopes: string[];
-    vars: Vars;
+	deps: Deps;
+	globalRoot: boolean;
+	maxRecursion: number;
+	rawVars: RawVars;
+	scopes: string[];
+	vars: Vars;
+
+	/**
+	 * Creates a new UserVars object for holding user defined dynamic variables
+	 * @param {boolean} globalRoot  - True if the global variables are contained at the root level, else false
+	 * @param {number} maxRecursion - Maximum number of times evaluate can call itself
+	 */
+	constructor(globalRoot: boolean, maxRecursion?: number) {
+		this.globalRoot = Boolean(globalRoot);
+		this.maxRecursion = maxRecursion || 10;
+
+		this.deps = {};
+		this.rawVars = {};
+		this.scopes = [];
+		this.vars = {};
+	}
+
+	/**
+	 * Adds the passed scope to the list. This is done automatically with addVar and the build methods
+	 * @param {string}  scope     - Name of the scope to add to the list
+	 * @param {boolean} overwrite - True if existing global variables with conflicting name should be overwritten
+	 * @returns {boolean} True if scope was added or already existed
+	 */
+	#addScope(scope: string, overwrite: boolean = true): boolean {
+		// scope is not in this.scopes
+		if (this.scopes.indexOf(scope) === -1) {
+			// there is nothing at this.rawVars[scope]
+			// or
+			// this.rawVars[scope] is a RawVar, not a RawScope, and should be overwritten
+			if (!this.rawVars[scope] || (overwrite && this.rawVars[scope]?.varType)) {
+				this.scopes.push(scope);
+				this.rawVars[scope] = {};
+				this.vars[scope] = {};
+
+				return true;
+			}
+		} else {
+			// scope already exists
+			return true;
+		}
+
+		// there is a global variable with the same name as scope, but cannot overwrite it
+		return false;
+	}
+
+	/**
+	 * Adds the passed variable to the RawVars, and the evaluated value to vars.
+	 * This is done automatically with the build methods
+	 * @param {RawVar}  value  - Variable to add to the list
+	 * @param {boolean} overwrite - True if existing variable with conflicting name or scope should be overwritten
+	 * @returns {boolean} True if variable was set
+	 */
+	addVar(value: RawVar, overwrite: boolean = true): boolean {
+		// variable goes to root
+		if (value.scope === "global" && this.globalRoot) {
+			// variable doesn't exist yet
+			if (!this.rawVars[value.name]) {
+				this.rawVars[value.name] = value;
+				return true;
+			} else {
+				// variable exists and should be overwritten
+				if (overwrite) {
+					this.rawVars[value.name] = value;
+					return true;
+				}
+			}
+
+			return false;
+		} else { // variable goes to a scope
+			// added or already existed
+			if (this.#addScope(value.scope, overwrite)) {
+				// can safely ignore because rawVars[value.scope] and vars[value.scope] were made into a RawScope by #addScope
+				// @ts-ignore
+				this.rawVars[value.scope][value.name] = value;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
+	/**
+	 * Evaluates a RawVar into a string or string[] and puts the result in the vars object
+	 * @param {RawVar} value     - Value to evaluate
+	 * @param {number} [depth=0] - Current recursion depth
+	 * @returns {string | string[]} Evaluated value
+	 */
+	evaluate(value: RawVar, depth?: number): string | string[] {
+		if (!depth) {
+			depth = 0;
+		}
+
+		depth++;
+
+		if (depth > this.maxRecursion) {
+			return "[TOO MUCH RECURSION]";
+		}
+
+		if (value.varType === "basic") {
+			const basic = value as BasicVar;
+
+			if (basic.basicType === "literal") {
+				this.setEvaluated(basic.name, basic.scope, basic.value);
+				return basic.value;
+			}
+
+			// basicType is var
+
+			if (basic.value === this.getPath(basic.name, basic.scope)) {
+				return "[CIRCULAR DEPENDENCY]";
+			}
+
+			const referenced = get(this.vars, basic.value, null);
+
+			// referenced is a variable
+			if (typeof referenced === "string" || referenced instanceof Array) {
+				return referenced;
+			} else if (referenced !== null) { // referenced is a Scope
+				return "[VARIABLE POINTS TO SCOPE]";
+			}
+
+			// referenced is null
+			const rawReferenced = get(this.rawVars, basic.value, null);
+
+			// rawReferenced is a variable
+			if (rawReferenced?.varType) {
+				const varReferenced = rawReferenced as RawVar;
+
+				const evaluated = this.evaluate(varReferenced, depth);
+
+				this.setEvaluated(basic.name, basic.scope, evaluated);
+
+				return evaluated;
+			} else if (rawReferenced !== null) { // rawReferenced is a RawScope
+				return "[VARIABLE POINTS TO SCOPE]";
+			}
+
+			// rawReference is null
+			return "[MISSING REFERENCE]";
+		}
+
+		return "[NOT YET IMPLEMENTED]";
+	}
+
+	/**
+	 * Gets the path to a variable from its scope and name
+	 * @param {string} name             - The name of the variable
+	 * @param {string} [scope="global"] - The scope of the variable
+	 * @returns {string} The path to the variable, accounting for globalRoot and
+	 */
+	getPath(name: string, scope?: string): string {
+		if (!scope) {
+			scope = "global";
+		}
+
+		if (scope !== "global") {
+			// return to global
+			if (name.startsWith("../")) {
+				name = name.replace("../", "");
+
+				// global is root, so return the name at root
+				// or
+				// name already includes a scope, so include it
+				if (this.globalRoot || name.indexOf(".") > -1) {
+					return name;
+				}
+
+				return `global.${name}`;
+			}
+
+			return `${scope}.${name}`;
+		} else {
+			if (this.globalRoot) {
+				return name;
+			}
+
+			return `global.${name}`;
+		}
+	}
 
     /**
-     * Creates a new UserVars object for holding user defined dynamic variables
-     * @param {boolean} globalRoot  - True if the global variables are contained at the root level, else false
+     * Gets an evaluated variable from a string path
+     * @param {string} path - The path to the variable
+     * @returns {string | string[]} The value found at the path
      */
-    constructor(globalRoot: boolean) {
-        this.globalRoot = Boolean(globalRoot);
-
-        this.deps = {};
-        this.rawVars = {};
-        this.scopes = [];
-        this.vars = {};
-    }
+	getVar(path: string): string | string[];
 
     /**
-     * Adds the passed scope to the list. This is done automatically with addVar and the build methods
-     * @param {string}  scope     - Name of the scope to add to the list
-     * @param {boolean} overwrite - True if existing global variables with conflicting name should be overwritten
-     * @returns {boolean} True if scope was added or already existed
+     * Gets an evaluated variable from a name and a scope, under scope.name
+     * @param {string} name  - The name of the variable
+     * @param {string} scope - The scope the variable is under
+     * @returns {string | string[]} The value found at scope.name
      */
-    #addScope(scope: string, overwrite: boolean = true): boolean {
-        // scope is not in this.scopes
-        if (this.scopes.indexOf(scope) === -1) {
-            // there is nothing at this.rawVars[scope]
-            // or
-            // this.rawVars[scope] is a RawVar, not a RawScope, and should be overwritten
-            if (!this.rawVars[scope] || (overwrite && this.rawVars[scope]?.varType)) {
-                this.scopes.push(scope);
-                this.rawVars[scope] = {};
-                this.vars[scope] = {};
-
-                return true;
-            }
-        } else {
-            // scope already exists
-            return true;
-        }
-
-        // there is a global variable with the same name as scope, but cannot overwrite it
-        return false;
-    }
+	getVar(name: string, scope: string): string | string[];
 
     /**
-     * Adds the passed variable to the list. This is done automatically with the build methods
-     * @param {RawVar}  value  - Variable to add to the list
-     * @param {boolean} overwrite - True if existing variable with conflicting name or scope should be overwritten
-     * @returns {boolean} True if variable was set
+     * Gets an evaluated variable from a path or a name and a scope
+     * @param {string} path  - The path to the variable
+     * @param {string} name  - The name of the variable
+     * @param {string} scope - The scope the variable is under
+     * @returns {string | string[]} The value found at scope.name or path
      */
-    addVar(value: RawVar, overwrite: boolean = true): boolean {
-        // variable goes to root
-        if (value.scope === "global" && this.globalRoot) {
-            // variable doesn't exist yet
-            if (!this.rawVars[value.name]) {
-                this.rawVars[value.name] = value;
-                this.vars[value.name] = this.evaluate(value);
-                return true;
-            } else {
-                // variable exists and should be overwritten
-                if (overwrite) {
-                    this.rawVars[value.name] = value;
-                    this.vars[value.name] = this.evaluate(value);
-                    return true;
-                }
-            }
+	getVar(path?: string, name?: string, scope?: string): string | string[] {
+		if (path) {
+		}
 
-            return false;
-        } else { // variable goes to a scope
-            // added or already existed
-            if (this.#addScope(value.scope, overwrite)) {
-                // can safely ignore because this.rawVars[variable.scope] was made into a RawScope by this.#addScope
-                // @ts-ignore
-                this.rawVars[value.scope][value.name] = value;
-                // @ts-ignore
-                this.rawVars[value.scope][value.name] = this.evaluate(value);
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
+		throw new ReferenceError("pass either path or name and scope");
+	}
 
     /**
-     * Evaluates a RawVar into a string or string[]
-     * @param {RawVar} value - Value to evaluate
-     * @returns {string | string[]} Evaluated value
+     * Gets a RawVar from a string path
+     * @param {string} path - The path to the variable
+     * @returns {RawVar} The RawVar found at the path
      */
-    evaluate(value: RawVar): string | string[] {
-        if (value.varType === "basic") {
-            value = value as BasicVar;
-
-        }
-    }
+	getRawVar(path: string): RawVar;
 
     /**
-     * Gets the path to a variable from its scope and name
-     * @param {string} name             - The name of the variable
-     * @param {string} [scope="global"] - The scope of the variable
-     * @returns {string} The path to the variable, accounting for globalRoot and
+     * Gets a RawVar from a name and a scope, under scope.name
+     * @param {string} name  - The name of the variable
+     * @param {string} scope - The scope the variable is under
+     * @returns {RawVar} The RawVar found at scope.name
      */
-    getPath(name: string, scope?: string): string {
-        if (!scope) {
-            scope = "global";
-        }
+	getRawVar(name: string, scope: string): RawVar;
 
-        if (scope !== "global") {
-            // return to global
-            if (name.startsWith("../")) {
-                name = name.replace("../", "");
+    /**
+     * Gets a RawVar from a path or a name and a scope
+     * @param {string} path  - The path to the variable
+     * @param {string} name  - The name of the variable
+     * @param {string} scope - The scope the variable is under
+     * @returns {RawVar} The variable found at scope.name or path
+     */
+	getRawVar(path?: string, name?: string, scope?: string): RawVar {
+		throw new ReferenceError("pass either path or name and scope");
+	}
 
-                // global is root, so return the name at root
-                // or
-                // name already includes a scope, so include it
-                if (this.globalRoot || name.indexOf(".") > -1) {
-                    return name;
-                }
-
-                return `global.${name}`;
-            }
-
-            return `${scope}.${name}`;
-        } else {
-            if (this.globalRoot) {
-                return name;
-            }
-
-            return `global.${name}`;
-        }
-    }
+	/**
+	 * Sets the evaluated value of a variable in the vars map
+	 * @param {string} name             - Name of the variable to set
+	 * @param {string} scope            - Scope of the variable to set
+	 * @param {string | string[]} value - Value of the variable to set
+	 */
+	setEvaluated(name: string, scope: string, value: string | string[]) {
+		if (scope === "global" && this.globalRoot) {
+			this.vars[name] = value;
+		} else {
+			this.#addScope(scope);
+			// @ts-ignore
+			this.vars[scope][name] = value;
+		}
+	}
 }

@@ -1,4 +1,5 @@
 import UserVars from "./user-vars";
+import { BasicVar, Scope } from "./index.d";
 
 describe("globalRoot = true", () => {
 	let userVars: UserVars;
@@ -28,6 +29,42 @@ describe("globalRoot = true", () => {
 
 		test("sibling scope", () => {
 			expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
+		});
+
+		test("up to global then back to scope", () => {
+			expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
+		});
+	});
+
+	describe("addVar", () => {
+		test("BasicVar literal", () => {
+			const basicVar = {
+				name: "nice",
+				scope: "global",
+				value: "69",
+				varType: "basic",
+				basicType: "literal"
+			} as BasicVar;
+
+			userVars.addVar(basicVar);
+
+			if (typeof userVars.vars.global !== "string") {
+				const vars = userVars.vars.global as Scope;
+
+				expect(vars.nice).toBe("69");
+			}
+		});
+
+		test("BasicVar var", () => {
+			const basicVar = {
+				name: "nice",
+				scope: "global",
+				value: "69",
+				varType: "basic",
+				basicType: "literal"
+			} as BasicVar;
+
+			userVars.addVar(basicVar);
 		});
 	});
 });
@@ -60,6 +97,10 @@ describe("globalRoot = false", () => {
 
 		test("sibling scope", () => {
 			expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
+		});
+
+		test("up to global then back to scope", () => {
+			expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
 		});
 	});
 });

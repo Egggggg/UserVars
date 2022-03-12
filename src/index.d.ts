@@ -138,12 +138,20 @@ export class UserVars {
     scopes: string[]
     vars: Vars;
 
-    constructor(globalRoot: bool);
+    constructor(globalRoot: bool, maxRecursion?: number);
     addScope(name: string, overwrite: boolean = true): boolean;
     addVar(value: RawVar, overwrite: boolean = true): boolean;
     bulkBuild(vars: Object);
     buildBasic(value: {name: string, value: string, basicType: "var" | "literal"});
     buildList(value: {name: string, value: ValueRecipe[]});
     buildTable(value: {name: string, value: TableRecipe, default: ValueRecipe, priority: Priority});
-    evaluate(value: RawVar): string | string[];
+    evaluate(value: RawVar, depth?: number): string | string[];
+    getPath(name: string, scope?: string): string;
+    getVar(path: string): string | string[];
+    getVar(name: string, scope: string): string | string[];
+    getVar(path?: string, name?: string, scope?: string): string | string[];
+    getRawVar(path: string): RawVar;
+    getRawVar(name: string, scope: string): RawVar;
+    getRawVar(path?: string, name?: string, scope?: string): RawVar;
+    setEvaluated(name: string, scope: string, value: string | string[]);
 }
