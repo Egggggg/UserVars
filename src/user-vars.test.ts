@@ -1,5 +1,5 @@
 import UserVars from "./user-vars";
-import { BasicVar, Scope } from "./index.d";
+import { BasicVar } from "./index.d";
 
 describe("globalRoot = true", () => {
 	let userVars: UserVars;
@@ -48,10 +48,10 @@ describe("globalRoot = true", () => {
 
 			userVars.addVar(basicVar);
 
-			if (typeof userVars.vars.global !== "string") {
-				const vars = userVars.vars.global as Scope;
-
-				expect(vars.nice).toBe("69");
+			if (typeof userVars.vars.nice === "string") {
+				expect(userVars.vars.nice).toBe("69");
+			} else {
+				throw new Error("userVars.vars.nice is not a string")
 			}
 		});
 

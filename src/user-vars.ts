@@ -1,4 +1,4 @@
-import {BasicVar, Deps, ListVar, RawVar, RawVars, TableVar, Vars} from "./index.d";
+import {BasicVar, Deps, RawVar, RawVars, Vars} from "./index.d";
 import {get} from "lodash";
 
 /**
@@ -21,7 +21,7 @@ export default class UserVars {
 	/**
 	 * Creates a new UserVars object for holding user defined dynamic variables
 	 * @param {boolean} globalRoot  - True if the global variables are contained at the root level, else false
-	 * @param {number} maxRecursion - Maximum number of times evaluate can call itself
+	 * @param {number} [maxRecursion=10] - Maximum number of times evaluate can call itself
 	 */
 	constructor(globalRoot: boolean, maxRecursion?: number) {
 		this.globalRoot = Boolean(globalRoot);
@@ -36,7 +36,7 @@ export default class UserVars {
 	/**
 	 * Adds the passed scope to the list. This is done automatically with addVar and the build methods
 	 * @param {string}  scope     - Name of the scope to add to the list
-	 * @param {boolean} overwrite - True if existing global variables with conflicting name should be overwritten
+	 * @param {boolean} [overwrite=true] - True if existing global variables with conflicting name should be overwritten
 	 * @returns {boolean} True if scope was added or already existed
 	 */
 	#addScope(scope: string, overwrite: boolean = true): boolean {
@@ -65,7 +65,7 @@ export default class UserVars {
 	 * Adds the passed variable to the RawVars, and the evaluated value to vars.
 	 * This is done automatically with the build methods
 	 * @param {RawVar}  value  - Variable to add to the list
-	 * @param {boolean} overwrite - True if existing variable with conflicting name or scope should be overwritten
+	 * @param {boolean} [overwrite=true] - True if existing variable with conflicting name or scope should be overwritten
 	 * @returns {boolean} True if variable was set
 	 */
 	addVar(value: RawVar, overwrite: boolean = true): boolean {
@@ -74,11 +74,13 @@ export default class UserVars {
 			// variable doesn't exist yet
 			if (!this.rawVars[value.name]) {
 				this.rawVars[value.name] = value;
+				this.evaluate(value);
 				return true;
 			} else {
 				// variable exists and should be overwritten
 				if (overwrite) {
 					this.rawVars[value.name] = value;
+					this.evaluate(value);
 					return true;
 				}
 			}
@@ -90,6 +92,7 @@ export default class UserVars {
 				// can safely ignore because rawVars[value.scope] and vars[value.scope] were made into a RawScope by #addScope
 				// @ts-ignore
 				this.rawVars[value.scope][value.name] = value;
+				this.evaluate(value);
 				return true;
 			} else {
 				return false;
