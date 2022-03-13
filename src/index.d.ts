@@ -153,5 +153,6 @@ export class UserVars {
     getRawVar(path: string): RawVar;
     getRawVar(name: string, scope: string): RawVar;
     getRawVar(path?: string, name?: string, scope?: string): RawVar;
+    normalizePath(path: string): string;
     setEvaluated(name: string, scope: string, value: string | string[]);
 }

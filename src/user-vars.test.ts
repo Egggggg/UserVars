@@ -1,106 +1,173 @@
 import UserVars from "./user-vars";
 import { BasicVar } from "./index.d";
 
-describe("globalRoot = true", () => {
-	let userVars: UserVars;
+const basicGlobalLiteral = {
+    name: "nice",
+    scope: "global",
+    value: "69",
+    varType: "basic",
+    basicType: "literal"
+} as BasicVar;
 
-	beforeEach(() => {
-		userVars = new UserVars(true);
-	});
+const basicGlobalVar = {
+    name: "niceVar",
+    scope: "global",
+    value: "nice",
+    varType: "basic",
+    basicType: "var"
+} as BasicVar;
 
-	describe("getPath", () => {
-		describe("global scope", () => {
-			test("traverse up to global", () => {
-				expect(userVars.getPath("../var", "scope")).toBe("var");
-			});
+const basicGlobalVar2 = {
+    name: "niceVar2",
+    scope: "global",
+    value: "niceVar",
+    varType: "basic",
+    basicType: "var"
+} as BasicVar;
 
-			test("never leave global", () => {
-				expect(userVars.getPath("var", "global")).toBe("var");
-			});
+const basicScopedLiteral = {
+    name: "nice",
+    scope: "scope1",
+    value: "59",
+    varType: "basic",
+    basicType: "literal"
+} as BasicVar;
 
-			test("no scope argument", () => {
-				expect(userVars.getPath("var")).toBe("var");
-			});
-		});
+const basicScopedVar = {
+    name: "niceVar",
+    scope: "scope1",
+    value: "nice",
+    varType: "basic",
+    basicType: "var"
+} as BasicVar;
 
-		test("scope and name", () => {
-			expect(userVars.getPath("var", "scope")).toBe("scope.var");
-		});
+/**
+ * TODO
+ * addVar
+ *  failure
+ * evaluate
+ * 	too much recursion
+ * 	circular dependency
+ *  variable points to scope
+ *  missing reference
+ * normalizePath
+ *  no passed scope
+ *  up
+ *  301
+ *  309
+ */
 
-		test("sibling scope", () => {
-			expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
-		});
+describe("globalRoot true", () => {
+    let userVars: UserVars;
 
-		test("up to global then back to scope", () => {
-			expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
-		});
-	});
+    beforeEach(() => {
+        userVars = new UserVars(true);
+    });
 
-	describe("addVar", () => {
-		test("BasicVar literal", () => {
-			const basicVar = {
-				name: "nice",
-				scope: "global",
-				value: "69",
-				varType: "basic",
-				basicType: "literal"
-			} as BasicVar;
+    describe("addVar", () => {
+        test("BasicVar literal", () => {
+            const basicVar = {
+                name: "nice",
+                scope: "global",
+                value: "69",
+                varType: "basic",
+                basicType: "literal"
+            } as BasicVar;
 
-			userVars.addVar(basicVar);
+            userVars.addVar(basicVar);
 
-			if (typeof userVars.vars.nice === "string") {
-				expect(userVars.vars.nice).toBe("69");
-			} else {
-				throw new Error("userVars.vars.nice is not a string")
-			}
-		});
+            expect(userVars.vars.nice).toBe("69");
+        });
 
-		test("BasicVar var", () => {
-			const basicVar = {
-				name: "nice",
-				scope: "global",
-				value: "69",
-				varType: "basic",
-				basicType: "literal"
-			} as BasicVar;
+        test("BasicVar var", () => {
+            userVars.addVar(basicGlobalLiteral);
+            userVars.addVar(basicGlobalVar);
 
-			userVars.addVar(basicVar);
-		});
-	});
+            expect(userVars.vars.niceVar).toBe("69");
+        });
+
+        test("BasicVar var pointing to var", () => {
+            userVars.addVar(basicGlobalLiteral);
+            userVars.addVar(basicGlobalVar);
+            userVars.addVar(basicGlobalVar2);
+
+            expect(userVars.vars.niceVar2).toBe("69");
+        });
+
+        test("Scoped BasicVar var", () => {
+            userVars.addVar(basicScopedLiteral);
+            userVars.addVar(basicScopedVar);
+
+            expect(userVars.vars.scope1).toHaveProperty("niceVar");
+            // @ts-ignore
+            expect(userVars.vars.scope1["niceVar"]).toBe("59");
+        });
+    });
+
+    describe("getPath", () => {
+        describe("global scope", () => {
+            test("traverse up to global", () => {
+                expect(userVars.getPath("../var", "scope")).toBe("var");
+            });
+
+            test("never leave global", () => {
+                expect(userVars.getPath("var", "global")).toBe("var");
+            });
+
+            test("no scope argument", () => {
+                expect(userVars.getPath("var")).toBe("var");
+            });
+        });
+
+        test("scope and name", () => {
+            expect(userVars.getPath("var", "scope")).toBe("scope.var");
+        });
+
+        test("sibling scope", () => {
+            expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
+        });
+
+        test("up to global then back to scope", () => {
+            expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
+        });
+    });
 });
 
-describe("globalRoot = false", () => {
-	let userVars: UserVars;
+describe("globalRoot false", () => {
+    let userVars: UserVars;
 
-	beforeEach(() => {
-		userVars = new UserVars(false);
-	});
+    beforeEach(() => {
+        userVars = new UserVars(false);
+    });
 
-	describe("getPath", () => {
-		describe("global scope", () => {
-			test("traverse up to global", () => {
-				expect(userVars.getPath("../var", "scope")).toBe("global.var");
-			});
+    describe("getPath", () => {
+        describe("global scope", () => {
+            test("traverse up to global", () => {
+                expect(userVars.getPath("../var", "scope")).toBe("global.var");
+            });
 
-			test("never leave global", () => {
-				expect(userVars.getPath("var", "global")).toBe("global.var");
-			});
+            test("never leave global", () => {
+                expect(userVars.getPath("var", "global")).toBe("global.var");
+            });
 
-			test("no scope argument", () => {
-				expect(userVars.getPath("var")).toBe("global.var");
-			});
-		});
+            test("no scope argument", () => {
+                expect(userVars.getPath("var")).toBe("global.var");
+            });
+        });
 
-		test("scope and name", () => {
-			expect(userVars.getPath("var", "scope")).toBe("scope.var");
-		});
+        test("up to global then back to scope", () => {
+            expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
+        });
+    });
 
-		test("sibling scope", () => {
-			expect(userVars.getPath("../scope2.var", "scope")).toBe("scope2.var");
-		});
+    describe("addVar", () => {
+        test("Scoped BasicVar var", () => {
+            userVars.addVar(basicScopedLiteral);
+            userVars.addVar(basicScopedVar);
 
-		test("up to global then back to scope", () => {
-			expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
-		});
-	});
+            expect(userVars.vars.scope1).toHaveProperty("niceVar");
+            // @ts-ignore
+            expect(userVars.vars.scope1["niceVar"]).toBe("59");
+        });
+    });
 });
