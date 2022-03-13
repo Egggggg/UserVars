@@ -33,6 +33,14 @@ const basicScopedLiteral = {
     basicType: "literal"
 } as BasicVar;
 
+const basicNiceScopedLiteral = {
+    name: "nice",
+    scope: "nice",
+    value: "59",
+    varType: "basic",
+    basicType: "literal"
+} as BasicVar;
+
 const basicScopedVar = {
     name: "niceVar",
     scope: "scope1",
@@ -41,10 +49,24 @@ const basicScopedVar = {
     basicType: "var"
 } as BasicVar;
 
+const basicRecursion = {
+    name: "var1",
+    scope: "global",
+    value: "var2",
+    varType: "basic",
+    basicType: "var"
+} as BasicVar;
+
+const basicRecursion2 = {
+    name: "var2",
+    scope: "global",
+    value: "var1",
+    varType: "basic",
+    basicType: "var"
+} as BasicVar;
+
 /**
  * TODO
- * addVar
- *  failure
  * evaluate
  * 	too much recursion
  * 	circular dependency
@@ -66,17 +88,16 @@ describe("globalRoot true", () => {
 
     describe("addVar", () => {
         test("BasicVar literal", () => {
-            const basicVar = {
-                name: "nice",
-                scope: "global",
-                value: "69",
-                varType: "basic",
-                basicType: "literal"
-            } as BasicVar;
-
-            userVars.addVar(basicVar);
+            userVars.addVar(basicGlobalLiteral);
 
             expect(userVars.vars.nice).toBe("69");
+        });
+
+        test("Conflicting name and scope no overwrite", () => {
+            userVars.addVar(basicGlobalLiteral);
+            userVars.addVar(basicNiceScopedLiteral, false);
+
+            expect(userVars.vars).toStrictEqual({nice: "69"});
         });
 
         test("BasicVar var", () => {
@@ -101,6 +122,14 @@ describe("globalRoot true", () => {
             expect(userVars.vars.scope1).toHaveProperty("niceVar");
             // @ts-ignore
             expect(userVars.vars.scope1["niceVar"]).toBe("59");
+        });
+
+        test("Recursion limit", () => {
+            userVars.addVar(basicRecursion);
+            userVars.addVar(basicRecursion2);
+
+            expect(userVars.vars.var1).toBe("[TOO MUCH RECURSION]");
+            expect(userVars.vars.var2).toBe("[TOO MUCH RECURSION]");
         });
     });
 
