@@ -1,5 +1,13 @@
-import {BasicVar, Deps, RawVar, RawVars, Vars} from "./index.d";
-import {get} from "lodash";
+import {
+    BasicVar,
+    Deps,
+    RawScope,
+    RawVar,
+    RawVars,
+    Scope,
+    Vars
+} from "./index.d";
+import { get } from "lodash";
 
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
@@ -45,7 +53,10 @@ export default class UserVars {
             // there is nothing at this.rawVars[scope]
             // or
             // this.rawVars[scope] is a RawVar, not a RawScope, and should be overwritten
-            if (!this.rawVars[scope] || (overwrite && this.rawVars[scope]?.varType)) {
+            if (
+                !this.rawVars[scope] ||
+                (overwrite && this.rawVars[scope]?.varType)
+            ) {
                 this.scopes.push(scope);
                 this.rawVars[scope] = {};
                 this.vars[scope] = {};
@@ -72,18 +83,15 @@ export default class UserVars {
         // variable goes to root
         if (value.scope === "global" && this.globalRoot) {
             // variable doesn't exist yet
-            if (!this.rawVars[value.name]) {
-                this.rawVars[value.name] = value;
-                this.evaluate(value);
-                return true;
-            } else if (overwrite) {
+            if (!this.rawVars[value.name] || overwrite) {
                 this.rawVars[value.name] = value;
                 this.evaluate(value);
                 return true;
             }
 
             return false;
-        } else { // variable goes to a scope
+        } else {
+            // variable goes to a scope
             // added or already existed
             if (this.#addScope(value.scope, overwrite)) {
                 // can safely ignore because rawVars[value.scope] and vars[value.scope] were made into a RawScope by #addScope
@@ -118,14 +126,18 @@ export default class UserVars {
             const basic = value as BasicVar;
 
             if (basic.basicType === "literal") {
-                this.setEvaluated(basic.name, basic.scope, basic.value);
+                this.#setEvaluated(basic.name, basic.scope, basic.value);
                 return basic.value;
             }
 
             // basicType is var
 
             if (basic.value === this.getPath(basic.name, basic.scope)) {
-                this.setEvaluated(basic.name, basic.scope, "[CIRCULAR DEPENDENCY]");
+                this.#setEvaluated(
+                    basic.name,
+                    basic.scope,
+                    "[CIRCULAR DEPENDENCY]"
+                );
                 return "[CIRCULAR DEPENDENCY]";
             }
 
@@ -135,10 +147,15 @@ export default class UserVars {
 
             // referenced is a variable
             if (typeof referenced === "string" || referenced instanceof Array) {
-                this.setEvaluated(basic.name, basic.scope, referenced);
+                this.#setEvaluated(basic.name, basic.scope, referenced);
                 return referenced;
-            } else if (referenced !== null) { // referenced is a Scope
-                this.setEvaluated(basic.name, basic.scope, "[VARIABLE POINTS TO SCOPE]");
+            } else if (referenced !== null) {
+                // referenced is a Scope
+                this.#setEvaluated(
+                    basic.name,
+                    basic.scope,
+                    "[VARIABLE POINTS TO SCOPE]"
+                );
                 return "[VARIABLE POINTS TO SCOPE]";
             }
 
@@ -151,16 +168,21 @@ export default class UserVars {
 
                 const evaluated = this.evaluate(varReferenced, depth);
 
-                this.setEvaluated(basic.name, basic.scope, evaluated);
+                this.#setEvaluated(basic.name, basic.scope, evaluated);
 
                 return evaluated;
-            } else if (rawReferenced !== null) { // rawReferenced is a RawScope
-                this.setEvaluated(basic.name, basic.scope, "[VARIABLE POINTS TO SCOPE]");
+            } else if (rawReferenced !== null) {
+                // rawReferenced is a RawScope
+                this.#setEvaluated(
+                    basic.name,
+                    basic.scope,
+                    "[VARIABLE POINTS TO SCOPE]"
+                );
                 return "[VARIABLE POINTS TO SCOPE]";
             }
 
             // rawReference is null
-            this.setEvaluated(basic.name, basic.scope, "[MISSING REFERENCE]");
+            this.#setEvaluated(basic.name, basic.scope, "[MISSING REFERENCE]");
             return "[MISSING REFERENCE]";
         }
 
@@ -203,59 +225,103 @@ export default class UserVars {
         }
     }
 
+    static #getVarAbstract(
+        object: Vars | RawVars,
+        locator: {
+            path?: string;
+            name?: string;
+            scope?: string;
+        }
+    ): string | string[] | Scope | RawVar | RawScope {
+        const { path, name, scope } = locator;
+
+        if (path) {
+            const result = get(object, path, null);
+
+            if (result === null) {
+                throw new ReferenceError(`Variable ${path} not found`);
+            }
+
+            return result;
+        } else if (name && scope) {
+            const result = get(object, `${scope}.${name}`, null);
+
+            if (result === null) {
+                throw new ReferenceError(`Variable ${scope}.${name} not found`);
+            }
+
+            return result;
+        }
+
+        throw new ReferenceError("pass either path or both name and scope");
+    }
+
     /**
      * Gets an evaluated variable from a string path
-     * @param {string} path - The path to the variable
+     * @param {Object} locator - The container object for the actual parameters
+     * @param {string} locator.path - The path to the variable
      * @returns {string | string[]} The value found at the path
      */
-    getVar(path: string): string | string[];
+    getVar(locator: { path: string }): string | string[] | Scope;
 
     /**
      * Gets an evaluated variable from a name and a scope, under scope.name
-     * @param {string} name  - The name of the variable
-     * @param {string} scope - The scope the variable is under
+     * @param {Object} locator - The container object for the actual parameters
+     * @param {string} locator.name  - The name of the variable
+     * @param {string} locator.scope - The scope the variable is under
      * @returns {string | string[]} The value found at scope.name
      */
-    getVar(name: string, scope: string): string | string[];
+    getVar(locator: { name: string; scope: string }): string | string[] | Scope;
 
     /**
      * Gets an evaluated variable from a path or a name and a scope
-     * @param {string} path  - The path to the variable
-     * @param {string} name  - The name of the variable
-     * @param {string} scope - The scope the variable is under
+     * @param {Object} locator - The container object for the actual parameters
+     * @param {string} locator.path  - The path to the variable
+     * @param {string} locator.name  - The name of the variable
+     * @param {string} locator.scope - The scope the variable is under
      * @returns {string | string[]} The value found at scope.name or path
      */
-    getVar(path?: string, name?: string, scope?: string): string | string[] {
-        if (path) {
-        }
-
-        throw new ReferenceError("pass either path or name and scope");
+    getVar(locator: {
+        path?: string;
+        name?: string;
+        scope?: string;
+    }): string | string[] | Scope {
+        // @ts-ignore
+        return this.#getVarAbstract(this.vars, locator);
     }
 
     /**
      * Gets a RawVar from a string path
-     * @param {string} path - The path to the variable
+     * @param {Object} locator - The container object for the actual parameters
+     * @param {string} locator.path - The path to the variable
      * @returns {RawVar} The RawVar found at the path
      */
-    getRawVar(path: string): RawVar;
+    getRawVar(locator: { path: string }): RawVar | RawScope;
 
     /**
      * Gets a RawVar from a name and a scope, under scope.name
-     * @param {string} name  - The name of the variable
-     * @param {string} scope - The scope the variable is under
+     * @param {Object} locator - The container object for the actual parameters
+     * @param {string} locator.name  - The name of the variable
+     * @param {string} locator.scope - The scope the variable is under
      * @returns {RawVar} The RawVar found at scope.name
      */
-    getRawVar(name: string, scope: string): RawVar;
+    getRawVar(locator: { name: string; scope: string }): RawVar | RawScope;
 
     /**
      * Gets a RawVar from a path or a name and a scope
-     * @param {string} path  - The path to the variable
-     * @param {string} name  - The name of the variable
-     * @param {string} scope - The scope the variable is under
+     * @param {Object} locator - The container object for the actual parameters
+     * @param {string} locator.path  - The path to the variable
+     * @param {string} locator.name  - The name of the variable
+     * @param {string} locator.scope - The scope the variable is under
      * @returns {RawVar} The variable found at scope.name or path
      */
-    getRawVar(path?: string, name?: string, scope?: string): RawVar {
-        throw new ReferenceError("pass either path or name and scope");
+    getRawVar(locator: {
+        path?: string;
+        name?: string;
+        scope?: string;
+    }): RawVar | RawScope {
+        // @ts-ignore
+        return this.#getVarAbstract(this.rawVars, locator);
     }
 
     /**
@@ -264,7 +330,7 @@ export default class UserVars {
      * @param {string} scope            - The scope of the variable to set
      * @param {string | string[]} value - The value of the variable to set
      */
-    setEvaluated(name: string, scope: string, value: string | string[]) {
+    #setEvaluated(name: string, scope: string, value: string | string[]) {
         if (scope === "global" && this.globalRoot) {
             this.vars[name] = value;
         } else {
@@ -294,7 +360,7 @@ export default class UserVars {
             path = path.replace("../", "");
         }
 
-        // remove multiple spaces in a row
+        // remove multiple periods in a row
         path = path.replace(/\.+/, ".");
 
         let split = path.split(".");
@@ -302,8 +368,12 @@ export default class UserVars {
 
         split = [split[0], split[split.length - 1]];
 
-        if ((scope === "global" || up) && !this.globalRoot && !multipleParts) {
-            return `global.${split[0]}`;
+        if ((scope === "global" || up) && !multipleParts) {
+            if (!this.globalRoot) {
+                return `global.${split[0]}`;
+            }
+
+            return split[0];
         }
 
         if (!multipleParts) {

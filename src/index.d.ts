@@ -24,7 +24,7 @@ export interface RawVar {
  */
 export interface BasicVar extends RawVar {
     value: string;
-    basicType: "var" | "literal";
+    basicType: BasicType;
     varType: "basic";
 }
 
@@ -101,7 +101,7 @@ export interface Vars {
  */
 export interface BasicRecipe {
     value: string;
-    basicType: "var" | "literal";
+    basicType: BasicType;
 }
 
 /**
@@ -142,7 +142,7 @@ export class UserVars {
     addScope(name: string, overwrite: boolean = true): boolean;
     addVar(value: RawVar, overwrite: boolean = true): boolean;
     bulkBuild(vars: Object);
-    buildBasic(value: {name: string, value: string, basicType: "var" | "literal"});
+    buildBasic(value: {name: string, value: string, basicType: BasicType});
     buildList(value: {name: string, value: ValueRecipe[]});
     buildTable(value: {name: string, value: TableRecipe, default: ValueRecipe, priority: Priority});
     evaluate(value: RawVar, depth?: number): string | string[];
