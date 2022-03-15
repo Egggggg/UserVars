@@ -125,6 +125,7 @@ export default class UserVars {
             // basicType is var
 
             if (basic.value === this.getPath(basic.name, basic.scope)) {
+                this.setEvaluated(basic.name, basic.scope, "[CIRCULAR DEPENDENCY]");
                 return "[CIRCULAR DEPENDENCY]";
             }
 
@@ -137,6 +138,7 @@ export default class UserVars {
                 this.setEvaluated(basic.name, basic.scope, referenced);
                 return referenced;
             } else if (referenced !== null) { // referenced is a Scope
+                this.setEvaluated(basic.name, basic.scope, "[VARIABLE POINTS TO SCOPE]");
                 return "[VARIABLE POINTS TO SCOPE]";
             }
 
@@ -153,10 +155,12 @@ export default class UserVars {
 
                 return evaluated;
             } else if (rawReferenced !== null) { // rawReferenced is a RawScope
+                this.setEvaluated(basic.name, basic.scope, "[VARIABLE POINTS TO SCOPE]");
                 return "[VARIABLE POINTS TO SCOPE]";
             }
 
             // rawReference is null
+            this.setEvaluated(basic.name, basic.scope, "[MISSING REFERENCE]");
             return "[MISSING REFERENCE]";
         }
 
