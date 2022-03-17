@@ -1,6 +1,7 @@
 import {
     BasicVar,
     Deps,
+    Path,
     RawScope,
     RawVar,
     RawVars,
@@ -12,7 +13,7 @@ import { get } from "lodash";
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
  * @class
- * @property {Deps}     deps       - Dependency map that gets checked when variables are updated
+ * @property {Deps}     deps       - Dependency map of {dependency: dependent} that gets checked when variables are updated
  * @property {boolean}  globalRoot - True if the global variables are contained at the root level, else false
  * @property {RawVars}  rawVars    - Raw, unevaluated variable data
  * @property {string[]} scopes     - List of scopes currently in use
@@ -79,13 +80,18 @@ export default class UserVars {
      * @param {boolean} [overwrite=true] - True if existing variable with conflicting name or scope should be overwritten
      * @returns {boolean} True if variable was set
      */
-    addVar(value: RawVar, overwrite: boolean = true): boolean {
+    setVar(value: RawVar, overwrite: boolean = true): boolean {
         // variable goes to root
         if (value.scope === "global" && this.globalRoot) {
             // variable doesn't exist yet
             if (!this.rawVars[value.name] || overwrite) {
                 this.rawVars[value.name] = value;
-                this.evaluate(value);
+
+                this.#setEvaluated(
+                    value.name,
+                    value.scope,
+                    this.evaluate(value)
+                );
                 return true;
             }
 
@@ -97,12 +103,98 @@ export default class UserVars {
                 // can safely ignore because rawVars[value.scope] and vars[value.scope] were made into a RawScope by #addScope
                 // @ts-ignore
                 this.rawVars[value.scope][value.name] = value;
-                this.evaluate(value);
+
+                const evaluated = this.evaluate(value);
+
+                this.#setEvaluated(value.name, value.scope, evaluated);
+
                 return true;
             } else {
                 return false;
             }
         }
+    }
+
+    /**
+     * Adds a dependent to a dependent list
+     * @param {string} dependency - The absolute path to the dependent list to add to
+     * @param {string} dependent  - The absolute path to the dependent to add
+     * @private
+     */
+    #addDependent(dependency: string, dependent: string) {
+        if (!this.deps[dependency]) {
+            this.deps[dependency] = [];
+        }
+
+        this.deps[dependency].push(dependent);
+    }
+
+    /**
+     * Updates all dependents in a dependent list
+     * Useful for when the dependency is changed
+     * @param {Object} dependency                            - An object containing information about the dependency
+     * @param {string} [dependency.dependencyPath=undefined] - The absolute path to the dependency
+     * @private
+     */
+    #updateDependents(dependency: Path): void;
+
+    /**
+     * Updates all dependents in a dependent list
+     * Useful for when the dependency is changed
+     * @param {Object}            dependency                 - An object containing information about the dependency
+     * @param {string | string[]} [dependency.dependencyVal=undefined]  - The value of the dependency
+     * @param {string[]}          [dependency.dependentList=undefined]  - The dependent list
+     * @private
+     */
+    #updateDependents(dependency: {
+        dependencyVal: string | string[];
+        dependentList: string[];
+    }): void;
+
+    /**
+     * Updates all dependents in a dependent list
+     * Useful for when the dependency is changed
+     * @param {Object}            dependency                           - An object containing information about the dependency
+     * @param {string}            [dependencyPath=undefined]           - The absolute path to the dependency
+     * @param {string | string[]} [dependency.dependencyVal=undefined] - The value of the dependency
+     * @param {string[]}          [dependency.dependentList=undefined] - The dependent list
+     * @param {boolean}           clean                                - True if nonexistent dependents should be removed
+     * @private
+     */
+    #updateDependents(
+        dependencyPath?: string,
+        dependency?: {
+            dependencyVal: string | string[];
+            dependentList: string[];
+        },
+        clean: boolean = true
+    ): void {
+        let dependentList: string[];
+        let dependencyVal: string | string[];
+
+        if (dependencyPath) {
+            dependentList = this.deps[dependencyPath];
+            dependencyVal = this.getVar(dependencyPath);
+
+            if (!dependentList) {
+                throw new ReferenceError(
+                    `No dependency "${dependencyPath}" found in deps`
+                );
+            }
+        }
+
+        if (dependency) {
+            dependencyVal = dependency.dependencyVal;
+            dependentList = dependency.dependentList;
+        }
+
+        if (!dependentList) {
+            throw new Error(
+                "Pass either a path or an object containing a value and a string array"
+            );
+        }
+
+        dependentList.forEach((dependent) => {});
     }
 
     /**
@@ -126,63 +218,44 @@ export default class UserVars {
             const basic = value as BasicVar;
 
             if (basic.basicType === "literal") {
-                this.#setEvaluated(basic.name, basic.scope, basic.value);
                 return basic.value;
             }
 
             // basicType is var
 
             if (basic.value === this.getPath(basic.name, basic.scope)) {
-                this.#setEvaluated(
-                    basic.name,
-                    basic.scope,
-                    "[CIRCULAR DEPENDENCY]"
-                );
                 return "[CIRCULAR DEPENDENCY]";
             }
 
             const path = this.normalizePath(basic.value, basic.scope);
-
             const referenced = get(this.vars, path, null);
 
             // referenced is a variable
             if (typeof referenced === "string" || referenced instanceof Array) {
-                this.#setEvaluated(basic.name, basic.scope, referenced);
+                this.#addDependent(path, `${basic.scope}.${basic.value}`);
                 return referenced;
             } else if (referenced !== null) {
                 // referenced is a Scope
-                this.#setEvaluated(
-                    basic.name,
-                    basic.scope,
-                    "[VARIABLE POINTS TO SCOPE]"
-                );
                 return "[VARIABLE POINTS TO SCOPE]";
             }
 
             // referenced is null
+
             const rawReferenced = get(this.rawVars, basic.value, null);
 
             // rawReferenced is a variable
             if (rawReferenced?.varType) {
                 const varReferenced = rawReferenced as RawVar;
 
-                const evaluated = this.evaluate(varReferenced, depth);
-
-                this.#setEvaluated(basic.name, basic.scope, evaluated);
-
-                return evaluated;
+                this.#addDependent(path, `${basic.scope}.${basic.value}`);
+                return this.evaluate(varReferenced, depth);
             } else if (rawReferenced !== null) {
                 // rawReferenced is a RawScope
-                this.#setEvaluated(
-                    basic.name,
-                    basic.scope,
-                    "[VARIABLE POINTS TO SCOPE]"
-                );
                 return "[VARIABLE POINTS TO SCOPE]";
             }
 
             // rawReference is null
-            this.#setEvaluated(basic.name, basic.scope, "[MISSING REFERENCE]");
+            this.#addDependent(path, `${basic.scope}.${basic.value}`);
             return "[MISSING REFERENCE]";
         }
 
@@ -225,7 +298,7 @@ export default class UserVars {
         }
     }
 
-    static #getVarAbstract(
+    static getVarAbstract(
         object: Vars | RawVars,
         locator: {
             path?: string;
@@ -253,16 +326,15 @@ export default class UserVars {
             return result;
         }
 
-        throw new ReferenceError("pass either path or both name and scope");
+        throw new Error("Pass either path or both name and scope");
     }
 
     /**
      * Gets an evaluated variable from a string path
-     * @param {Object} locator - The container object for the actual parameters
-     * @param {string} locator.path - The path to the variable
+     * @param {string} path - The path to the variable
      * @returns {string | string[]} The value found at the path
      */
-    getVar(locator: { path: string }): string | string[] | Scope;
+    getVar(path: string): string | string[] | Scope;
 
     /**
      * Gets an evaluated variable from a name and a scope, under scope.name
@@ -275,28 +347,29 @@ export default class UserVars {
 
     /**
      * Gets an evaluated variable from a path or a name and a scope
-     * @param {Object} locator - The container object for the actual parameters
-     * @param {string} locator.path  - The path to the variable
-     * @param {string} locator.name  - The name of the variable
-     * @param {string} locator.scope - The scope the variable is under
+     * @param {Object | string} locator - The container object for the parameters, or the path
+     * @param {string} locator.name     - The name of the variable
+     * @param {string} locator.scope    - The scope the variable is under
      * @returns {string | string[]} The value found at scope.name or path
      */
-    getVar(locator: {
-        path?: string;
-        name?: string;
-        scope?: string;
-    }): string | string[] | Scope {
+    getVar(
+        locator?:
+            | string
+            | {
+                  name: string;
+                  scope: string;
+              }
+    ): string | string[] | Scope {
         // @ts-ignore
-        return this.#getVarAbstract(this.vars, locator);
+        return UserVars.getVarAbstract(this.vars, path, locator);
     }
 
     /**
      * Gets a RawVar from a string path
-     * @param {Object} locator - The container object for the actual parameters
-     * @param {string} locator.path - The path to the variable
+     * @param {Path | string} locator - The container object for the parameters, or the path
      * @returns {RawVar} The RawVar found at the path
      */
-    getRawVar(locator: { path: string }): RawVar | RawScope;
+    getRawVar(locator: string): RawVar | RawScope;
 
     /**
      * Gets a RawVar from a name and a scope, under scope.name
@@ -309,19 +382,22 @@ export default class UserVars {
 
     /**
      * Gets a RawVar from a path or a name and a scope
-     * @param {Object} locator - The container object for the actual parameters
-     * @param {string} locator.path  - The path to the variable
+     * @param {string} path          - The path to the variable
+     * @param {Object} locator       - The container object for the actual parameters
      * @param {string} locator.name  - The name of the variable
      * @param {string} locator.scope - The scope the variable is under
      * @returns {RawVar} The variable found at scope.name or path
      */
-    getRawVar(locator: {
-        path?: string;
-        name?: string;
-        scope?: string;
-    }): RawVar | RawScope {
+    getRawVar(
+        locator?:
+            | string
+            | {
+                  name: string;
+                  scope: string;
+              }
+    ): RawVar | RawScope {
         // @ts-ignore
-        return this.#getVarAbstract(this.rawVars, locator);
+        return UserVars.getVarAbstract(this.rawVars, locator);
     }
 
     /**

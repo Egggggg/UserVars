@@ -100,43 +100,43 @@ describe("globalRoot true", () => {
 
     describe("addVar", () => {
         test("BasicVar literal", () => {
-            userVars.addVar(basicGlobalLiteral);
+            userVars.setVar(basicGlobalLiteral);
 
             expect(userVars.getVar({ path: "nice" })).toBe("69");
         });
 
         test("Conflicting name and scope no overwrite", () => {
-            userVars.addVar(basicGlobalLiteral);
-            userVars.addVar(basicNiceScopedLiteral, false);
+            userVars.setVar(basicGlobalLiteral);
+            userVars.setVar(basicNiceScopedLiteral, false);
 
             expect(userVars.vars).toStrictEqual({ nice: "69" });
         });
 
         test("BasicVar var", () => {
-            userVars.addVar(basicGlobalLiteral);
-            userVars.addVar(basicGlobalVar);
+            userVars.setVar(basicGlobalLiteral);
+            userVars.setVar(basicGlobalVar);
 
             expect(userVars.getVar({ path: "niceVar" })).toBe("69");
         });
 
         test("BasicVar var pointing to var", () => {
-            userVars.addVar(basicGlobalLiteral);
-            userVars.addVar(basicGlobalVar);
-            userVars.addVar(basicGlobalVar2);
+            userVars.setVar(basicGlobalLiteral);
+            userVars.setVar(basicGlobalVar);
+            userVars.setVar(basicGlobalVar2);
 
             expect(userVars.getVar({ path: "niceVar2" })).toBe("69");
         });
 
         test("Scoped BasicVar var", () => {
-            userVars.addVar(basicScopedLiteral);
-            userVars.addVar(basicScopedVar);
+            userVars.setVar(basicScopedLiteral);
+            userVars.setVar(basicScopedVar);
 
             expect(userVars.getVar({ path: "scope1.niceVar" })).toBe("6969");
         });
 
         test("Recursion limit", () => {
-            userVars.addVar(basicRecursion);
-            userVars.addVar(basicRecursion2);
+            userVars.setVar(basicRecursion);
+            userVars.setVar(basicRecursion2);
 
             expect(userVars.getVar({ path: "var1" })).toBe(
                 "[TOO MUCH RECURSION]"
@@ -147,7 +147,7 @@ describe("globalRoot true", () => {
         });
 
         test("Circular dependency", () => {
-            userVars.addVar(basicCircular);
+            userVars.setVar(basicCircular);
 
             expect(userVars.getVar({ path: "var" })).toBe(
                 "[CIRCULAR DEPENDENCY]"
@@ -155,15 +155,15 @@ describe("globalRoot true", () => {
         });
 
         test("Overwrite", () => {
-            userVars.addVar(basicGlobalLiteral);
-            userVars.addVar(basicGlobalLiteral2);
+            userVars.setVar(basicGlobalLiteral);
+            userVars.setVar(basicGlobalLiteral2);
 
             expect(userVars.getVar({ path: "nice" })).toBe("6969");
         });
 
         test("Overwrite not allowed", () => {
-            userVars.addVar(basicGlobalLiteral);
-            userVars.addVar(basicGlobalLiteral2, false);
+            userVars.setVar(basicGlobalLiteral);
+            userVars.setVar(basicGlobalLiteral2, false);
 
             expect(userVars.getVar({ path: "nice" })).toBe("69");
         });
@@ -200,7 +200,7 @@ describe("globalRoot true", () => {
     });
 
     test("getRawVar", () => {
-        userVars.addVar(basicGlobalLiteral);
+        userVars.setVar(basicGlobalLiteral);
 
         expect(userVars.getRawVar({ path: "nice" })).toStrictEqual(
             basicGlobalLiteral
@@ -237,15 +237,15 @@ describe("globalRoot false", () => {
 
     describe("addVar", () => {
         test("Scoped BasicVar var", () => {
-            userVars.addVar(basicScopedLiteral);
-            userVars.addVar(basicScopedVar);
+            userVars.setVar(basicScopedLiteral);
+            userVars.setVar(basicScopedVar);
 
             expect(userVars.getVar({ path: "scope1.niceVar" })).toBe("6969");
         });
     });
 
     test("getRawVar", () => {
-        userVars.addVar(basicGlobalLiteral);
+        userVars.setVar(basicGlobalLiteral);
 
         expect(userVars.getRawVar({ path: "global.nice" })).toStrictEqual(
             basicGlobalLiteral

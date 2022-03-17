@@ -3,10 +3,28 @@ type Priority = "first" | "last";
 type BasicType = "var" | "literal";
 
 /**
- * Mapping of variable names to their dependents
+ * A path string or the parts of a path
+ */
+export type Path =  string | PathParts;
+
+/**
+ * Container for the parts of a path
+ * @property {string} name  - The name of the variable to point to
+ * @property {string} scope - The scope of the variable to point to
+ */
+export interface PathParts {
+    name: string;
+    scope: string;
+}
+
+/**
+ * A mapping of variable paths to their dependents
  */
 export interface Deps {
-    [key: string]: string[];
+    /**
+     * dependentList: A path mapped to the paths of its dependents
+     */
+    [path: string]: string[];
 }
 
 /**
