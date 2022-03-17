@@ -1,5 +1,4 @@
-import UserVars from "./user-vars";
-import { BasicVar } from "./index.d";
+import { UserVars, BasicVar } from "./user-vars";
 
 const basicGlobalLiteral = {
     name: "nice",
