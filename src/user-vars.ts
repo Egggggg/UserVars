@@ -201,14 +201,14 @@ export class UserVars {
      * Adds the passed variable to RawVars, and the evaluated value to vars.
      * This is done automatically with the build methods
      * @param {RawVar}  value            - Variable to add to the list
-     * @param {boolean} [overwrite=true] - True if existing variable with conflicting name or scope should be overwritten
+     * @param {boolean} [overwriteWithScope=true] - True if existing variable with conflicting name or scope should be overwritten
      * @returns {boolean} True if variable was set
      */
-    setVar(value: RawVar, overwrite: boolean = true): boolean {
+    setVar(value: RawVar, overwriteWithScope: boolean = true): boolean {
         // variable goes to root
         if (value.scope === "global" && this.globalRoot) {
             // variable doesn't exist yet
-            if (!this.rawVars[value.name] || overwrite) {
+            if (!this.rawVars[value.name] || overwriteWithScope) {
                 this.rawVars[value.name] = value;
 
                 this.#setEvaluated(
@@ -223,7 +223,7 @@ export class UserVars {
         } else {
             // variable goes to a scope
             // added or already existed
-            if (this.#addScope(value.scope, overwrite)) {
+            if (this.#addScope(value.scope, overwriteWithScope)) {
                 // can safely ignore because rawVars[value.scope] and vars[value.scope] were made into a RawScope by #addScope
                 // @ts-ignore
                 this.rawVars[value.scope][value.name] = value;
@@ -256,28 +256,6 @@ export class UserVars {
     /**
      * Updates all dependents in a dependent list
      * Useful for when the dependency is changed
-     * @param {Object} dependency                            - An object containing information about the dependency
-     * @param {string} [dependency.dependencyPath=undefined] - The absolute path to the dependency
-     * @private
-     */
-    #updateDependents(dependency: Path): void;
-
-    /**
-     * Updates all dependents in a dependent list
-     * Useful for when the dependency is changed
-     * @param {Object}            dependency                 - An object containing information about the dependency
-     * @param {string | string[]} [dependency.dependencyVal=undefined]  - The value of the dependency
-     * @param {string[]}          [dependency.dependentList=undefined]  - The dependent list
-     * @private
-     */
-    #updateDependents(dependency: {
-        dependencyVal: string | string[];
-        dependentList: string[];
-    }): void;
-
-    /**
-     * Updates all dependents in a dependent list
-     * Useful for when the dependency is changed
      * @param {Object}            dependency                           - An object containing information about the dependency
      * @param {string}            [dependencyPath=undefined]           - The absolute path to the dependency
      * @param {string | string[]} [dependency.dependencyVal=undefined] - The value of the dependency
@@ -286,39 +264,38 @@ export class UserVars {
      * @private
      */
     #updateDependents(
-        dependencyPath?: string,
-        dependency?: {
-            dependencyVal: string | string[];
-            dependentList: string[];
-        },
+        path: string,
         clean: boolean = true
     ): void {
-        let dependentList: string[];
-        let dependencyVal: string | string[];
-
-        if (dependencyPath) {
-            dependentList = this.deps[dependencyPath];
-            dependencyVal = this.getVar(dependencyPath);
-
-            if (!dependentList) {
-                throw new ReferenceError(
-                    `No dependency "${dependencyPath}" found in deps`
-                );
-            }
-        }
-
-        if (dependency) {
-            dependencyVal = dependency.dependencyVal;
-            dependentList = dependency.dependentList;
-        }
+        let dependentList = this.deps[path];
 
         if (!dependentList) {
-            throw new Error(
-                "Pass either a path or an object containing a value and a string array"
+            throw new ReferenceError(
+                `No dependency "${path}" found in deps`
             );
         }
 
-        dependentList.forEach((dependent) => {});
+        // Thrown errors should get through, this method cannot proceed without success here
+        let dependencyVal = this.getVar(path);
+        let toClean = [];
+
+        dependentList.forEach((dependent) => {
+            let raw: RawVar;
+
+            try {
+                raw = this.getRawVar(dependent);
+
+                this.setVar(raw);
+            } catch (err) {
+                if (err instanceof ReferenceError) {
+                    if (clean) {
+                        toClean.push(dependent);
+                    }
+                } else {
+                    throw err;
+                }
+            }
+        });
     }
 
     /**
@@ -429,13 +406,13 @@ export class UserVars {
             name?: string;
             scope?: string;
         }
-    ): string | string[] | Scope | RawVar | RawScope {
+    ): string | string[] | RawVar {
         const { path, name, scope } = locator;
 
         if (path) {
             const result = get(object, path, null);
 
-            if (result === null) {
+            if (result === null || (typeof result !== "string" && !(result instanceof Array))) {
                 throw new ReferenceError(`Variable ${path} not found`);
             }
 
@@ -443,7 +420,7 @@ export class UserVars {
         } else if (name && scope) {
             const result = get(object, `${scope}.${name}`, null);
 
-            if (result === null) {
+            if (result === null || (typeof result !== "string" && !(result instanceof Array))) {
                 throw new ReferenceError(`Variable ${scope}.${name} not found`);
             }
 
@@ -458,7 +435,7 @@ export class UserVars {
      * @param {string} path - The path to the variable
      * @returns {string | string[]} The value found at the path
      */
-    getVar(path: string): string | string[] | Scope;
+    getVar(locator: string): string | string[];
 
     /**
      * Gets an evaluated variable from a name and a scope, under scope.name
@@ -467,7 +444,7 @@ export class UserVars {
      * @param {string} locator.scope - The scope the variable is under
      * @returns {string | string[]} The value found at scope.name
      */
-    getVar(locator: { name: string; scope: string }): string | string[] | Scope;
+    getVar(locator: { name: string; scope: string }): string | string[];
 
     /**
      * Gets an evaluated variable from a path or a name and a scope
@@ -483,9 +460,9 @@ export class UserVars {
                   name: string;
                   scope: string;
               }
-    ): string | string[] | Scope {
+    ): string | string[] {
         // @ts-ignore
-        return UserVars.getVarAbstract(this.vars, path, locator);
+        return UserVars.getVarAbstract(this.vars, locator);
     }
 
     /**
@@ -493,7 +470,7 @@ export class UserVars {
      * @param {Path | string} locator - The container object for the parameters, or the path
      * @returns {RawVar} The RawVar found at the path
      */
-    getRawVar(locator: string): RawVar | RawScope;
+    getRawVar(locator: string): RawVar;
 
     /**
      * Gets a RawVar from a name and a scope, under scope.name
@@ -502,7 +479,7 @@ export class UserVars {
      * @param {string} locator.scope - The scope the variable is under
      * @returns {RawVar} The RawVar found at scope.name
      */
-    getRawVar(locator: { name: string; scope: string }): RawVar | RawScope;
+    getRawVar(locator: { name: string; scope: string }): RawVar;
 
     /**
      * Gets a RawVar from a path or a name and a scope
@@ -519,7 +496,7 @@ export class UserVars {
                   name: string;
                   scope: string;
               }
-    ): RawVar | RawScope {
+    ): RawVar {
         // @ts-ignore
         return UserVars.getVarAbstract(this.rawVars, locator);
     }

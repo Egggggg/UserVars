@@ -101,7 +101,7 @@ describe("globalRoot true", () => {
         test("BasicVar literal", () => {
             userVars.setVar(basicGlobalLiteral);
 
-            expect(userVars.getVar({ path: "nice" })).toBe("69");
+            expect(userVars.getVar("nice")).toBe("69");
         });
 
         test("Conflicting name and scope no overwrite", () => {
@@ -115,7 +115,7 @@ describe("globalRoot true", () => {
             userVars.setVar(basicGlobalLiteral);
             userVars.setVar(basicGlobalVar);
 
-            expect(userVars.getVar({ path: "niceVar" })).toBe("69");
+            expect(userVars.getVar("niceVar")).toBe("69");
         });
 
         test("BasicVar var pointing to var", () => {
@@ -123,24 +123,24 @@ describe("globalRoot true", () => {
             userVars.setVar(basicGlobalVar);
             userVars.setVar(basicGlobalVar2);
 
-            expect(userVars.getVar({ path: "niceVar2" })).toBe("69");
+            expect(userVars.getVar("niceVar2")).toBe("69");
         });
 
         test("Scoped BasicVar var", () => {
             userVars.setVar(basicScopedLiteral);
             userVars.setVar(basicScopedVar);
 
-            expect(userVars.getVar({ path: "scope1.niceVar" })).toBe("6969");
+            expect(userVars.getVar("scope1.niceVar")).toBe("6969");
         });
 
         test("Recursion limit", () => {
             userVars.setVar(basicRecursion);
             userVars.setVar(basicRecursion2);
 
-            expect(userVars.getVar({ path: "var1" })).toBe(
+            expect(userVars.getVar("var1")).toBe(
                 "[TOO MUCH RECURSION]"
             );
-            expect(userVars.getVar({ path: "var2" })).toBe(
+            expect(userVars.getVar("var2")).toBe(
                 "[TOO MUCH RECURSION]"
             );
         });
@@ -148,7 +148,7 @@ describe("globalRoot true", () => {
         test("Circular dependency", () => {
             userVars.setVar(basicCircular);
 
-            expect(userVars.getVar({ path: "var" })).toBe(
+            expect(userVars.getVar("var")).toBe(
                 "[CIRCULAR DEPENDENCY]"
             );
         });
@@ -157,14 +157,14 @@ describe("globalRoot true", () => {
             userVars.setVar(basicGlobalLiteral);
             userVars.setVar(basicGlobalLiteral2);
 
-            expect(userVars.getVar({ path: "nice" })).toBe("6969");
+            expect(userVars.getVar("nice")).toBe("6969");
         });
 
         test("Overwrite not allowed", () => {
             userVars.setVar(basicGlobalLiteral);
             userVars.setVar(basicGlobalLiteral2, false);
 
-            expect(userVars.getVar({ path: "nice" })).toBe("69");
+            expect(userVars.getVar("nice")).toBe("69");
         });
     });
 
@@ -201,7 +201,7 @@ describe("globalRoot true", () => {
     test("getRawVar", () => {
         userVars.setVar(basicGlobalLiteral);
 
-        expect(userVars.getRawVar({ path: "nice" })).toStrictEqual(
+        expect(userVars.getRawVar("nice")).toStrictEqual(
             basicGlobalLiteral
         );
     });
@@ -239,14 +239,14 @@ describe("globalRoot false", () => {
             userVars.setVar(basicScopedLiteral);
             userVars.setVar(basicScopedVar);
 
-            expect(userVars.getVar({ path: "scope1.niceVar" })).toBe("6969");
+            expect(userVars.getVar("scope1.niceVar")).toBe("6969");
         });
     });
 
     test("getRawVar", () => {
         userVars.setVar(basicGlobalLiteral);
 
-        expect(userVars.getRawVar({ path: "global.nice" })).toStrictEqual(
+        expect(userVars.getRawVar("global.nice")).toStrictEqual(
             basicGlobalLiteral
         );
 
