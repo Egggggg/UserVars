@@ -31,9 +31,9 @@ export interface BasicVar extends RawVar {
 }
 
 /**
- * Value for list items and table outputs, should evaluate to a BasicVar
+ * Value for list items and table outputs
  */
-export type Value = BasicVar | string
+export type Value = BasicRecipe | string
 
 /**
  * Should evaluate to an array of BasicVars
@@ -207,7 +207,6 @@ export class UserVars {
     setVar(value: RawVar, overwriteWithScope: boolean = true): boolean {
         // variable goes to root
         if (value.scope === "global" && this.globalRoot) {
-            // variable doesn't exist yet
             if (!this.rawVars[value.name] || overwriteWithScope) {
                 this.rawVars[value.name] = value;
 
@@ -216,6 +215,15 @@ export class UserVars {
                     value.scope,
                     this.evaluate(value)
                 );
+
+                try {
+                    this.#updateDependents(this.getPath(value.name, value.scope));
+                } catch (err) {
+                    if (!(err instanceof ReferenceError)) {
+                        throw err;
+                    }
+                }
+
                 return true;
             }
 
@@ -231,6 +239,14 @@ export class UserVars {
                 const evaluated = this.evaluate(value);
 
                 this.#setEvaluated(value.name, value.scope, evaluated);
+
+                try {
+                    this.#updateDependents(this.getPath(value.name, value.scope));
+                } catch (err) {
+                    if (!(err instanceof ReferenceError)) {
+                        throw err;
+                    }
+                }
 
                 return true;
             } else {
@@ -256,11 +272,8 @@ export class UserVars {
     /**
      * Updates all dependents in a dependent list
      * Useful for when the dependency is changed
-     * @param {Object}            dependency                           - An object containing information about the dependency
-     * @param {string}            [dependencyPath=undefined]           - The absolute path to the dependency
-     * @param {string | string[]} [dependency.dependencyVal=undefined] - The value of the dependency
-     * @param {string[]}          [dependency.dependentList=undefined] - The dependent list
-     * @param {boolean}           clean                                - True if nonexistent dependents should be removed
+	 * @param {string}  path  - The path to the dependency
+     * @param {boolean} clean - True if nonexistent dependents should be removed
      * @private
      */
     #updateDependents(
@@ -299,7 +312,7 @@ export class UserVars {
     }
 
     /**
-     * Evaluates a RawVar into a string or string[] and puts the result in the vars object
+     * Evaluates a RawVar into a string or string[]
      * @param {RawVar} value     - Value to evaluate
      * @param {number} [depth=0] - Current recursion depth
      * @returns {string | string[]} Evaluated value
@@ -308,6 +321,8 @@ export class UserVars {
         if (!depth) {
             depth = 0;
         }
+
+		const thisPath = `${value.scope}.${value.name}`;
 
         depth++;
 
@@ -333,7 +348,7 @@ export class UserVars {
 
             // referenced is a variable
             if (typeof referenced === "string" || referenced instanceof Array) {
-                this.#addDependent(path, `${basic.scope}.${basic.value}`);
+                this.#addDependent(path, thisPath);
                 return referenced;
             } else if (referenced !== null) {
                 // referenced is a Scope
@@ -348,7 +363,7 @@ export class UserVars {
             if (rawReferenced?.varType) {
                 const varReferenced = rawReferenced as RawVar;
 
-                this.#addDependent(path, `${basic.scope}.${basic.value}`);
+                this.#addDependent(path, thisPath);
                 return this.evaluate(varReferenced, depth);
             } else if (rawReferenced !== null) {
                 // rawReferenced is a RawScope
@@ -356,9 +371,31 @@ export class UserVars {
             }
 
             // rawReference is null
-            this.#addDependent(path, `${basic.scope}.${basic.value}`);
+            this.#addDependent(path, thisPath);
             return "[MISSING REFERENCE]";
-        }
+        } else if (value.varType === "list") {
+			const output = [];
+			const list = value as ListVar;
+
+			list.value.forEach((e) => {
+				if (typeof e === "string") {
+					output.push(e);
+				} else {
+					this.#addDependent(e.value, thisPath);
+
+					try {
+						const current = this.getVar(e.value);
+						output.push(current);
+					} catch (err) {
+						if (err instanceof ReferenceError) {
+							output.push(e.value);
+						} else {
+							throw err;
+						}
+					}
+				}
+			});
+		}
 
         return "[NOT YET IMPLEMENTED]";
     }
@@ -401,23 +438,22 @@ export class UserVars {
 
     static getVarAbstract(
         object: Vars | RawVars,
-        locator: {
-            path?: string;
-            name?: string;
-            scope?: string;
+        locator: string | {
+            name: string;
+            scope: string;
         }
     ): string | string[] | RawVar {
-        const { path, name, scope } = locator;
 
-        if (path) {
-            const result = get(object, path, null);
+        if (typeof locator === "string") {
+            const result = get(object, locator, null);
 
             if (result === null || (typeof result !== "string" && !(result instanceof Array))) {
-                throw new ReferenceError(`Variable ${path} not found`);
+                throw new ReferenceError(`Variable ${locator} not found`);
             }
 
             return result;
-        } else if (name && scope) {
+        } else {
+			const { name, scope } = locator;
             const result = get(object, `${scope}.${name}`, null);
 
             if (result === null || (typeof result !== "string" && !(result instanceof Array))) {
@@ -426,13 +462,11 @@ export class UserVars {
 
             return result;
         }
-
-        throw new Error("Pass either path or both name and scope");
     }
 
     /**
      * Gets an evaluated variable from a string path
-     * @param {string} path - The path to the variable
+     * @param {string} locator - The path to the variable
      * @returns {string | string[]} The value found at the path
      */
     getVar(locator: string): string | string[];
@@ -483,10 +517,9 @@ export class UserVars {
 
     /**
      * Gets a RawVar from a path or a name and a scope
-     * @param {string} path          - The path to the variable
-     * @param {Object} locator       - The container object for the actual parameters
-     * @param {string} locator.name  - The name of the variable
-     * @param {string} locator.scope - The scope the variable is under
+     * @param {Object | string} locator - The container object for the actual parameters, or the absolute path
+     * @param {string} locator.name     - The name of the variable
+     * @param {string} locator.scope    - The scope the variable is under
      * @returns {RawVar} The variable found at scope.name or path
      */
     getRawVar(
