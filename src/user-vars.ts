@@ -1,11 +1,11 @@
-import {get} from "lodash";
+import { get } from "lodash";
 
 type Comparison = "eq" | "lt" | "gt" | "in";
 type Priority = "first" | "last";
 type BasicType = "var" | "literal";
 
 /**
- * Mapping of variable names to their dependents
+ * Mapping of variable path to its dependents or dependencies
  */
 export interface Deps {
     [key: string]: string[];
@@ -33,7 +33,7 @@ export interface BasicVar extends RawVar {
 /**
  * Value for list items and table outputs
  */
-export type Value = BasicRecipe | string
+export type Value = BasicVar | string;
 
 /**
  * Should evaluate to an array of BasicVars
@@ -48,7 +48,7 @@ export interface ListVar extends RawVar {
  */
 export interface Condition {
     val1: Value;
-    comparison: Comparison
+    comparison: Comparison;
     val2: Value | ListVar;
 }
 
@@ -109,7 +109,7 @@ export interface BasicRecipe {
 /**
  * Object or string to deserialize into a BasicVar
  */
-export type ValueRecipe = BasicRecipe | string
+export type ValueRecipe = BasicRecipe | string;
 
 /**
  * Object that should be deserialized into a Condition
@@ -133,18 +133,28 @@ export interface RowRecipe {
  */
 export type TableRecipe = RowRecipe[];
 
+/**
+ * Checks whether obj is a RawVar
+ * @param obj Object to assert
+ * @returns {boolean} Whether obj is a RawVar
+ */
+function isRawVar(obj: string | string[] | RawVar | RawScope | Scope): obj is RawVar {
+	return typeof obj !== "string" && !(obj instanceof Array) && "varType" in obj && typeof obj.varType === "string";
+}
 
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
  * @class
- * @property {Deps}     deps       - Dependency map of {dependency: dependent} that gets checked when variables are updated
- * @property {boolean}  globalRoot - True if the global variables are contained at the root level, else false
- * @property {RawVars}  rawVars    - Raw, unevaluated variable data
- * @property {string[]} scopes     - List of scopes currently in use
- * @property {Vars}     vars       - Evaluated variables, maps name to string value
+ * @property {Deps}     dependents   - Dependency map of {dependency: dependent[]}, used to cascade variable updates
+ * @property {Deps}     dependencies - Dependency map of {dependent: dependency[]}, used to remove dependents from dependents and for finding dependency loops
+ * @property {boolean}  globalRoot   - True if the global variables are contained at the root level, else false
+ * @property {RawVars}  rawVars      - Raw, unevaluated variable data
+ * @property {string[]} scopes       - List of scopes currently in use
+ * @property {Vars}     vars         - Evaluated variables, maps name to string value
  */
 export class UserVars {
-    deps: Deps;
+    dependents: Deps;
+	dependencies: Deps;
     globalRoot: boolean;
     maxRecursion: number;
     rawVars: RawVars;
@@ -160,7 +170,8 @@ export class UserVars {
         this.globalRoot = Boolean(globalRoot);
         this.maxRecursion = maxRecursion || 10;
 
-        this.deps = {};
+        this.dependents = {};
+		this.dependencies = {};
         this.rawVars = {};
         this.scopes = [];
         this.vars = {};
@@ -180,7 +191,7 @@ export class UserVars {
             // this.rawVars[scope] is a RawVar, not a RawScope, and should be overwritten
             if (
                 !this.rawVars[scope] ||
-                (overwrite && this.rawVars[scope]?.varType)
+                (overwrite && "varType" in this.rawVars[scope])
             ) {
                 this.scopes.push(scope);
                 this.rawVars[scope] = {};
@@ -236,9 +247,11 @@ export class UserVars {
                 // @ts-ignore
                 this.rawVars[value.scope][value.name] = value;
 
-                const evaluated = this.evaluate(value);
-
-                this.#setEvaluated(value.name, value.scope, evaluated);
+                this.#setEvaluated(
+					value.name,
+					value.scope,
+					this.evaluate(value)
+				);
 
                 try {
                     this.#updateDependents(this.getPath(value.name, value.scope));
@@ -262,11 +275,11 @@ export class UserVars {
      * @private
      */
     #addDependent(dependency: string, dependent: string) {
-        if (!this.deps[dependency]) {
-            this.deps[dependency] = [];
+        if (!this.dependents[dependency]) {
+            this.dependents[dependency] = [];
         }
 
-        this.deps[dependency].push(dependent);
+        this.dependents[dependency].push(dependent);
     }
 
     /**
@@ -280,16 +293,14 @@ export class UserVars {
         path: string,
         clean: boolean = true
     ): void {
-        let dependentList = this.deps[path];
+        let dependentList = this.dependents[path];
 
         if (!dependentList) {
-            throw new ReferenceError(
-                `No dependency "${path}" found in deps`
-            );
+			return;
         }
 
         // Thrown errors should get through, this method cannot proceed without success here
-        let dependencyVal = this.getVar(path);
+        this.getVar(path);
         let toClean = [];
 
         dependentList.forEach((dependent) => {
@@ -313,16 +324,16 @@ export class UserVars {
 
     /**
      * Evaluates a RawVar into a string or string[]
-     * @param {RawVar} value     - Value to evaluate
+     * @param {RawVar} value     - The value to evaluate
      * @param {number} [depth=0] - Current recursion depth
-     * @returns {string | string[]} Evaluated value
+     * @returns {string | string[]} The evaluated value
      */
     evaluate(value: RawVar, depth?: number): string | string[] {
         if (!depth) {
             depth = 0;
         }
 
-		const thisPath = `${value.scope}.${value.name}`;
+		const thisPath = this.getPath(value.name, value.scope);
 
         depth++;
 
@@ -349,7 +360,8 @@ export class UserVars {
             // referenced is a variable
             if (typeof referenced === "string" || referenced instanceof Array) {
                 this.#addDependent(path, thisPath);
-                return referenced;
+
+				return referenced;
             } else if (referenced !== null) {
                 // referenced is a Scope
                 return "[VARIABLE POINTS TO SCOPE]";
@@ -443,31 +455,30 @@ export class UserVars {
             scope: string;
         }
     ): string | string[] | RawVar {
-
         if (typeof locator === "string") {
             const result = get(object, locator, null);
 
-            if (result === null || (typeof result !== "string" && !(result instanceof Array))) {
-                throw new ReferenceError(`Variable ${locator} not found`);
+            if (typeof result === "string" || (result instanceof Array && result.filter((e) => typeof e !== "string").length > 0) || (result !== null && isRawVar(result))) {
+				return result;
             }
 
-            return result;
+			throw new ReferenceError(`Variable ${locator} not found`);
         } else {
 			const { name, scope } = locator;
             const result = get(object, `${scope}.${name}`, null);
 
-            if (result === null || (typeof result !== "string" && !(result instanceof Array))) {
-                throw new ReferenceError(`Variable ${scope}.${name} not found`);
+            if (typeof result === "string" || (result instanceof Array && result.filter((e) => typeof e !== "string").length > 0) || (result !== null && isRawVar(result))) {
+				return result;
             }
 
-            return result;
+			throw new ReferenceError(`Variable ${scope}.${name} not found`);
         }
     }
 
     /**
      * Gets an evaluated variable from a string path
      * @param {string} locator - The path to the variable
-     * @returns {string | string[]} The value found at the path
+     * @returns {string | string[]} The value found at locator
      */
     getVar(locator: string): string | string[];
 
@@ -501,8 +512,8 @@ export class UserVars {
 
     /**
      * Gets a RawVar from a string path
-     * @param {Path | string} locator - The container object for the parameters, or the path
-     * @returns {RawVar} The RawVar found at the path
+     * @param {string} locator - The path to the variable
+     * @returns {RawVar} The RawVar found at the locator
      */
     getRawVar(locator: string): RawVar;
 
@@ -520,7 +531,7 @@ export class UserVars {
      * @param {Object | string} locator - The container object for the actual parameters, or the absolute path
      * @param {string} locator.name     - The name of the variable
      * @param {string} locator.scope    - The scope the variable is under
-     * @returns {RawVar} The variable found at scope.name or path
+     * @returns {RawVar} The variable found at scope.name or locator
      */
     getRawVar(
         locator?:

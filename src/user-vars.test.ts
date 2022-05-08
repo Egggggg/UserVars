@@ -144,7 +144,7 @@ describe("globalRoot true", () => {
                 "[TOO MUCH RECURSION]"
             );
         });
-
+      
         test("Circular dependency", () => {
             userVars.setVar(basicCircular);
 
