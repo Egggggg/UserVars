@@ -203,7 +203,7 @@ describe("globalRoot true", () => {
 
         expect(userVars.getRawVar("nice")).toStrictEqual(
             basicGlobalLiteral
-        );
+        );	
     });
 });
 

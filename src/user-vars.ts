@@ -241,9 +241,10 @@ export class UserVars {
             return false;
         } else {
             // variable goes to a scope
+
             // added or already existed
             if (this.#addScope(value.scope, overwriteWithScope)) {
-                // can safely ignore because rawVars[value.scope] and vars[value.scope] were made into a RawScope by #addScope
+                // can safely ignore because rawVars[value.scope] was made into a RawScope by #addScope
                 // @ts-ignore
                 this.rawVars[value.scope][value.name] = value;
 
