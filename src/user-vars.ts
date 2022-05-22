@@ -218,7 +218,7 @@ export class UserVars {
     /**
      * Adds the passed variable to Vars, and the evaluated value to vars.
      * This is done automatically with the build methods
-     * @param {Var}  value                        - Variable to add to the list
+     * @param {Var}  value                         - Variable to add to the list
      * @param {boolean} [overwriteWithScope=false] - True if existing variable with conflicting name or scope should be overwritten
      * @returns {boolean} True if variable was set
      */
@@ -299,7 +299,7 @@ export class UserVars {
 						}
 					} catch (err) {
 						if (err instanceof ReferenceError) {
-							output.push(e.value);
+							output.push(`[${e.value}]`);
 						} else {
 							throw err;
 						}

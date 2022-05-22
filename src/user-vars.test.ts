@@ -56,6 +56,38 @@ const basicCircular = {
     basicType: "var"
 } as BasicVar;
 
+const basicCircular1 = {
+	name: "var1",
+	scope: "global",
+	value: "var2",
+	varType: "basic",
+	basicType: "var"
+} as BasicVar;
+
+const basicCircular2 = {
+	name: "var2",
+	scope: "global",
+	value: "scope.var3",
+	varType: "basic",
+	basicType: "var"
+} as BasicVar;
+
+const basicCircular3 = {
+	name: "var3",
+	scope: "scope",
+	value: "../var4",
+	varType: "basic",
+	basicType: "var"
+} as BasicVar;
+
+const basicCircular4 = {
+	name: "var4",
+	scope: "global",
+	value: "var1",
+	varType: "basic",
+	basicType: "var"
+} as BasicVar;
+
 const listOfLiterals = {
 	name: "list",
 	scope: "global",
@@ -115,18 +147,47 @@ const listRefScoped = {
 	varType: "list"
 } as ListVar;
 
+const listCircular = {
+	name: "list",
+	scope: "global",
+	value: [
+		"nice",
+		"nice 69",
+		{
+			value: "var2",
+			varType: "ref"
+		},
+		"nice yeah cool and good"
+	],
+	varType: "list"
+} as ListVar;
+
+const basicListCircular = {
+	name: "var2",
+	scope: "global",
+	value: "list",
+	varType: "basic",
+	basicType: "var"
+} as BasicVar;
+
 const tableDefault = {
 	name: "default",
 	scope: "global",
 	value: [
 		{
-		}"ass" +{;; mhm uhuh yeah '' = :)
-	}
+			output: "shouldn't",
+			conditions: [
+				{
+					val1: "0",
+					comparison: "eq",
+					val2: "1"
+				}
+			]
 		}
 	],
 	varType: "table",
 	priority: "first",
-	default: "69"
+	default: "me!"
 } as TableVar;
 
 describe("globalRoot true", () => {
@@ -174,6 +235,17 @@ describe("globalRoot true", () => {
 				);
 			});
 
+			test("Circular 4 deep", () => {
+				userVars.setVar(basicCircular1);
+				userVars.setVar(basicCircular2);
+				userVars.setVar(basicCircular3);
+				userVars.setVar(basicCircular4);
+
+				expect(userVars.getVar("var1")).toBe(
+					"[CIRCULAR DEPENDENCY]"
+				);
+			});
+
 			test("Overwrite", () => {
 				userVars.setVar(basicGlobalLiteral);
 				userVars.setVar(basicGlobalLiteral2, true);
@@ -217,6 +289,18 @@ describe("globalRoot true", () => {
 
 				expect(userVars.getVar("chaos.list")).toStrictEqual(["69", "6969", "chaos city"]);
 			});
+
+			test("List circular", () => {
+				userVars.setVar(listCircular);
+				userVars.setVar(basicListCircular);
+
+				expect(userVars.getVar("list")).toStrictEqual([
+					"nice",
+					"nice 69",
+					"[CIRCULAR DEPENDENCY]",
+					"nice yeah cool and good"
+				]);
+			})
 		});
     });
 
