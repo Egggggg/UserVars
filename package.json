@@ -20,7 +20,11 @@
     "url": "git+https://github.com/Egggggg/UserVars.git"
   },
   "keywords": [
-    "user-variables"
+    "user-variables",
+	"user",
+	"variables",
+	"vars",
+	"uservars"
   ],
   "author": "Bee Clark",
   "license": "GPL-3.0-or-later",
