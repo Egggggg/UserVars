@@ -18,8 +18,8 @@ export interface Deps {
 export interface Var {
     name: string;
     scope: string;
-    value: string | Value[] | TableRow[];
-    varType: "basic" | "list" | "table";
+    value: string | Value | Value[] | TableRow[];
+    varType: "basic" | "list" | "table" | "expression";
 }
 
 /**
@@ -36,7 +36,7 @@ export interface BasicVar extends Var {
  */
 export interface Reference {
 	value: string;
-	varType: "ref"
+	varType: "reference"
 }
 
 /**
@@ -94,6 +94,18 @@ export interface TableData {
 	out: Literal;
 	outIndex: number;
 	values: TableRowData[];
+}
+
+/**
+ * A mathematical expression to be evaluated
+ */
+export interface Expression extends Var {
+	functions: Value[],
+	vars: {
+		[name: string]: Reference 
+	}[],
+	value: Value,
+	varType: "expression"
 }
 
 /**
@@ -246,14 +258,15 @@ export class UserVars {
 
     /**
      * Evaluates a Var into a string or string[]
-     * @param {Var} value         - The value to evaluate
-     * @param {string} origin     - The original var's path for circular dependency detection
+     * @param {Var}     value    - The value to evaluate
+     * @param {string}  origin   - The original var's path for circular dependency detection
+	 * @param {boolean} recursed - 0 on first iteration, 1 after that, should only be set from this function
      * @returns {Literal} The evaluated value
      */
-    evaluate(value: Var, origin?: string): Literal {
+    evaluate(value: Var, origin: string = this.getPath(value.name, value.scope), recursed: boolean = false): Literal {
 		const thisPath = this.getPath(value.name, value.scope);
 
-        if (origin === thisPath) {
+        if (recursed && origin === thisPath) {
             return "[CIRCULAR DEPENDENCY]";
         }
 
@@ -268,18 +281,7 @@ export class UserVars {
                 return basic.value;
             }
 
-            const path = this.normalizePath(basic.value, basic.scope);
-            const referenced = get(this.vars, path, null);
-
-            // referenced is a variable
-            if (isVar(referenced)) {
-				return this.evaluate(referenced, origin);
-            } else if (referenced !== null) {
-                // referenced is a Scope
-                return "[VARIABLE POINTS TO SCOPE]";
-            }
-
-            return "[MISSING REFERENCE]";
+			return this.#followReference(basic.value, basic.scope, origin);
         } else if (value.varType === "list") {
 			const output: string[] = [];
 			const list = value as ListVar;
@@ -288,22 +290,15 @@ export class UserVars {
 				if (typeof e === "string") {
 					output.push(e);
 				} else {
-					try {
-						const path = this.normalizePath(e.value, list.scope);
-						const current = this.evaluate(this.getRawVar(path), origin);
+					const current = this.#followReference(e.value, list.scope, origin);
 
-						if (current instanceof Array) {
-							output.push(`[LIST ${e.value}]`);
-						} else {
-							output.push(current);
-						}
-					} catch (err) {
-						if (err instanceof ReferenceError) {
-							output.push(`[${e.value}]`);
-						} else {
-							throw err;
-						}
+					if (current instanceof Array) {
+						output.push(`[LIST ${e.value}]`);
+					} else if (current === "[MISSING REFERENCE]") {
+						output.push(`[LIST ${e.value}]`);
 					}
+
+					return current;
 				}
 			});
 			
@@ -317,7 +312,7 @@ export class UserVars {
 					let out = true;
 
 					for (let e of row.conditions) {
-						if (!this.#evalCondition(e, table)) {
+						if (!this.#evalCondition(e, table, origin)) {
 							out = false;
 							break;
 						}
@@ -326,10 +321,18 @@ export class UserVars {
 					if (out) {
 						if (typeof table.value[i].output === "string") {
 							return <string> table.value[i].output;
-						} else {
-							const path = this.normalizePath((<Reference> table.value[i].output).value, table.scope)
+						}
 
+						const path = this.normalizePath((<Reference> table.value[i].output).value, table.scope)
+						
+						try {
 							return this.evaluate(this.getRawVar(path), origin);
+						} catch (err) {
+							if (err instanceof ReferenceError) {
+								return "[MISSING REFERENCE]";
+							}
+			
+							throw err;
 						}
 					}
 				}
@@ -339,7 +342,7 @@ export class UserVars {
 					let out = true;
 
 					for (let e of row.conditions) {
-						if (!this.#evalCondition(e, table)) {
+						if (!this.#evalCondition(e, table, origin)) {
 							out = false;
 							break;
 						}
@@ -348,12 +351,48 @@ export class UserVars {
 					if (out) {
 						if (typeof table.value[i].output === "string") {
 							return <string> table.value[i].output;
-						} else {
-							const path = this.normalizePath((<Reference> table.value[i].output).value, table.scope)
+						}
 
+						const path = this.normalizePath((<Reference> table.value[i].output).value, table.scope)
+						
+						try {
 							return this.evaluate(this.getRawVar(path), origin);
+						} catch (err) {
+							if (err instanceof ReferenceError) {
+								return "[MISSING REFERENCE]";
+							}
+			
+							throw err;
 						}
 					}
+				}
+			}
+
+			if (typeof table.default === "string") {
+				return table.default;
+			}
+
+			const defaultPath = this.normalizePath((table.default).value, table.scope)
+
+			try {
+				return this.evaluate(this.getRawVar(defaultPath), origin);
+			} catch (err) {
+				if (err instanceof ReferenceError) {
+					return "[MISSING REFERENCE]";
+				}
+
+				throw err;
+			}
+		} else if (value.varType === "expression") {
+			let expr = value as Expression;
+
+			for (let i of expr.functions) {
+				if (typeof i === "string") {
+					expr.value += `${i};`;
+				} else {
+					const func = <string> this.#followReference(i, expr.scope, origin);
+
+					expr.value += `${func};`
 				}
 			}
 		}
@@ -366,7 +405,7 @@ export class UserVars {
 	 * @param {Condition} cond - The condition to evaluate
 	 * @return {boolean} Whether the condition passes
 	 */
-	#evalCondition(cond: Condition, table: TableVar): boolean {
+	#evalCondition(cond: Condition, table: TableVar, origin: string): boolean {
 		let val1;
 		let val2;
 
@@ -374,34 +413,52 @@ export class UserVars {
 			val1 = cond.val1;
 		} else {
 			val1 = cond.val1.value;
-			val1 = this.normalizePath(val1, table.scope);
-			val1 = this.evaluate(this.getRawVar(val1), origin);
+
+			try {
+				val1 = this.normalizePath(val1, table.scope);
+				val1 = this.evaluate(this.getRawVar(val1), origin);
+			} catch (err) {
+				if (err instanceof ReferenceError) {
+					val1 = "[MISSING REFERENCE]";
+				} else {
+					throw err;
+				}
+			}
 		}
 		
 		if (typeof cond.val2 === "string") {
 			val2 = cond.val2;
 		} else {
 			val2 = cond.val2.value;
-			val2 = this.normalizePath(val2, table.scope);
-			val2 = this.evaluate(this.getRawVar(val2), origin)
+
+			try {	
+				val2 = this.normalizePath(val2, table.scope);
+				val2 = this.evaluate(this.getRawVar(val2), origin)
+			} catch (err) {
+				if (err instanceof ReferenceError) {
+					val1 = "[MISSING REFERENCE]";
+				} else {
+					throw err;
+				}
+			}
 		}	
 
 		if (cond.comparison === "eq") {
 			if (!comparisons.eq(val1, val2)) {
 				return false
 			}
-		} else if (cond.comparison === "gt") {
+		} else if (cond.comparison === "lt") {
 			if (typeof val1 === "string" && typeof val2 === "string") {
-				if (!comparisons.gt(val1, val2)) {
+				if (!comparisons.lt(val1, val2)) {
 					return false
 				}
 			} else {
 				// type mismatch
 				return false;
 			}
-		} else if (cond.comparison === "lt") {
+		} else if (cond.comparison === "gt") {
 			if (typeof val1 === "string" && typeof val2 === "string") {
-				if (!comparisons.lt(val1, val2)) {
+				if (!comparisons.gt(val1, val2)) {
 					return false
 				}
 			} else {
@@ -473,7 +530,7 @@ export class UserVars {
 		if (isVar(result)) {
 			return result;
 		} else if (result) {
-			throw new ReferenceError(`${locator} points to a scope`);
+			throw new TypeError(`${locator} points to a scope`);
 		}
 
 		throw new ReferenceError(`Variable ${locator} not found`);
@@ -599,4 +656,22 @@ export class UserVars {
 
         return split.join(".");
     }
+
+	#followReference(ref: Reference | string, scope: string, origin: string): Literal {
+		if (typeof ref !== "string") {
+			ref = ref.value;
+		}
+
+		try {
+			const path = this.normalizePath(ref, scope);
+
+			return this.evaluate(this.getRawVar(path), origin, true);
+		} catch (err) {
+			if (err instanceof ReferenceError) {
+				return("[MISSING REFERENCE]");
+			} else {
+				throw err;
+			}
+		}
+	}
 }

@@ -108,11 +108,11 @@ const listMixed = {
 		"nice",
 		{
 			value: "nice",
-			varType: "ref"
+			varType: "reference"
 		},
 		{
 			value: "scope1.nice",
-			varType: "ref"
+			varType: "reference"
 		},
 		"fuck yes"
 	],
@@ -133,15 +133,15 @@ const listRefScoped = {
 	value: [
 		{
 			value: "../nice",
-			varType: "ref"
+			varType: "reference"
 		},
 		{
 			value: "../scope1.nice",
-			varType: "ref"
+			varType: "reference"
 		},
 		{
 			value: "nice",
-			varType: "ref"
+			varType: "reference"
 		}
 	],
 	varType: "list"
@@ -155,7 +155,7 @@ const listCircular = {
 		"nice 69",
 		{
 			value: "var2",
-			varType: "ref"
+			varType: "reference"
 		},
 		"nice yeah cool and good"
 	],
@@ -170,15 +170,15 @@ const basicListCircular = {
 	basicType: "var"
 } as BasicVar;
 
-const tableDefault = {
+const tableLiteral = {
 	name: "default",
 	scope: "global",
 	value: [
 		{
-			output: "shouldn't",
+			output: "me!",
 			conditions: [
 				{
-					val1: "0",
+					val1: "1",
 					comparison: "eq",
 					val2: "1"
 				}
@@ -187,8 +187,117 @@ const tableDefault = {
 	],
 	varType: "table",
 	priority: "first",
-	default: "me!"
+	default: "shouldn't"
 } as TableVar;
+
+const tableMulti = {
+	name: "table",
+	scope: "global",
+	value: [
+		{
+			output: "eq",
+			conditions: [
+				{
+					val1: {
+						value: "var",
+						varType: "reference"
+					},
+					comparison: "eq",
+					val2: "69"
+				}
+			]
+		},
+		{
+			output: "lt",
+			conditions: [
+				{
+					val1: {
+						value: "var",
+						varType: "reference"
+					},
+					comparison: "lt",
+					val2: "69"
+				}
+			]
+		},
+		{
+			output: "gt",
+			conditions: [
+				{
+					val1: {
+						value: "var",
+						varType: "reference"
+					},
+					comparison: "gt",
+					val2: "69"
+				}
+			]
+		},
+		{
+			output: "in",
+			conditions: [
+				{
+					val1: {
+						value: "var",
+						varType: "reference"
+					},
+					comparison: "in",
+					val2: {
+						value: "listOfWords",
+						varType: "reference"
+					}
+				}
+			]
+		}
+	],
+	varType: "table",
+	priority: "first",
+	default: "default"
+} as TableVar;
+
+const basicTableEq = {
+	name: "var",
+	scope: "global",
+	value: "69",
+	varType: "basic",
+	basicType: "literal"
+} as BasicVar;
+
+const basicTableLt = {
+	name: "var",
+	scope: "global",
+	value: "0",
+	varType: "basic",
+	basicType: "literal"
+} as BasicVar;
+
+const basicTableGt = {
+	name: "var",
+	scope: "global",
+	value: "100",
+	varType: "basic",
+	basicType: "literal"
+} as BasicVar;
+
+const basicTableIn = {
+	name: "var",
+	scope: "global",
+	value: "words",
+	varType: "basic",
+	basicType: "literal"
+} as BasicVar;
+
+const listTableWords = {
+	name: "listOfWords",
+	scope: "global",
+	value: [
+		"cool",
+		"words",
+		"are",
+		"good"
+	],
+	varType: "list"
+} as ListVar;
 
 describe("globalRoot true", () => {
     let userVars: UserVars;
@@ -300,6 +409,49 @@ describe("globalRoot true", () => {
 					"[CIRCULAR DEPENDENCY]",
 					"nice yeah cool and good"
 				]);
+			})
+		});
+
+		describe("Table", () => {
+			test("Table with literal", () => {
+				userVars.setVar(tableLiteral);
+
+				expect(userVars.getVar("default")).toBe("me!");
+			});
+			
+			test("Table is eq", () => {
+				userVars.setVar(tableMulti);
+				userVars.setVar(basicTableEq);
+
+				expect(userVars.getVar("table")).toBe("eq");
+			});
+
+			test("Table is lt", () => {
+				userVars.setVar(tableMulti);
+				userVars.setVar(basicTableLt);
+
+				expect(userVars.getVar("table")).toBe("lt");
+			});
+
+			test("Table is gt", () => {
+				userVars.setVar(tableMulti);
+				userVars.setVar(basicTableGt);
+
+				expect(userVars.getVar("table")).toBe("gt");
+			});
+
+			test("Table is in", () => {
+				userVars.setVar(tableMulti);
+				userVars.setVar(basicTableIn);
+				userVars.setVar(listTableWords);
+
+				expect(userVars.getVar("table")).toBe("in");
+			});
+
+			test("Table is default", () => {
+				userVars.setVar(tableMulti);
+
+				expect(userVars.getVar("table")).toBe("default");
 			})
 		});
     });
