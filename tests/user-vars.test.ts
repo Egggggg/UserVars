@@ -45,9 +45,7 @@ describe("globalRoot true", () => {
 			test("Circular 4 deep", () => {
 				userVars.setVarBulk(data.basicCircular1, data.basicCircular2, data.basicCircular3, data.basicCircular4);
 
-				expect(userVars.getVar("var1")).toBe(
-					"[CIRCULAR DEPENDENCY]"
-				);
+				expect(userVars.getVar("var1")).toBe("[CIRCULAR DEPENDENCY]");
 			});
 
 			test("Overwrite", () => {
@@ -58,17 +56,35 @@ describe("globalRoot true", () => {
 			});
 
 			test("Overwrite not allowed", () => {
-				userVars.setVar(data.basicGlobalLiteral, data.basicGlobalLiteral2);
+				userVars.setVarBulk(data.basicGlobalLiteral, data.basicGlobalLiteral2);
 
 				expect(userVars.getVar("nice")).toBe("cool");
+			});
+
+			test("Scoped overwrite not allowed", () => {
+				userVars.setVarBulk(data.basicScopedLiteral, data.basicScopedLiteral2);
+
+				expect(userVars.getVar("scope1.nice")).toBe("epic");
+			});
+
+			test("Scope with existing variable name", () => {
+				userVars.setVarBulk(data.basicGlobalLiteral, data.basicScopeNice);
+
+				expect(userVars.getVar("nice")).toBe("cool");
+			});
+
+			test("Get scope", () => {
+				userVars.setVar(data.basicScopedLiteral);
+
+				expect(() => userVars.getVar("scope1")).toThrow();
 			});
 		});
 
 		describe("List", () => {
 			test("List of literals", () => {
-				userVars.setVar(data.listOfLiterals);
+				userVars.setVar(data.listLiteral);
 
-				expect(userVars.getVar("list")).toStrictEqual(data.listOfLiterals.value);
+				expect(userVars.getVar("list")).toStrictEqual(data.listLiteral.value);
 			})
 
 			test("Mixed list", () => {
@@ -98,6 +114,21 @@ describe("globalRoot true", () => {
 					"nice yeah cool and good"
 				]);
 			})
+
+			test("List of invalid variables", () => {
+				userVars.setVarBulk(data.listLiteral, data.listInvalid);
+
+				expect(userVars.getVar("list2")).toStrictEqual([
+					"[MISSING no]",
+					"[LIST list]"
+				]);
+			});
+
+			test("List with reference to scope", () => {
+				userVars.setVarBulk(data.listRefScope, data.basicScopedLiteral);
+
+				expect(() => userVars.getVar("list")).toThrow();
+			});
 		});
 
 		describe("Table", () => {
@@ -149,6 +180,12 @@ describe("globalRoot true", () => {
 				expect(userVars.getVar("last")).toBe("yes");
 			});
 
+			test("Table priority last, output first", () => {
+				userVars.setVar(data.tableLastToFirst);
+
+				expect(userVars.getVar("first")).toBe("yes");
+			});
+
 			test("Table full priority first", () => {
 				userVars.setVar(data.tableFirst);
 
@@ -159,6 +196,36 @@ describe("globalRoot true", () => {
 				userVars.setVar(data.tableLast);
 
 				expect(userVars.getVar("last", true)).toStrictEqual(data.fullTableLastOutput);
+			});
+
+			test("Table reference priority first", () => {
+				userVars.setVarBulk(data.tableRefFirst, data.basicGlobalLiteral);
+
+				expect(userVars.getVar("ref")).toBe("cool");
+			});
+
+			test("Table reference priority last", () => {
+				userVars.setVarBulk(data.tableRefLast, data.basicGlobalLiteral);
+
+				expect(userVars.getVar("ref")).toBe("cool");
+			});
+
+			test("Table reference default", () => {
+				userVars.setVarBulk(data.tableRefDefault, data.basicGlobalLiteral);
+
+				expect(userVars.getVar("ref")).toBe("cool");
+			});
+
+			test("Table invalid lt/gt types and missing entry in list", () => {
+				userVars.setVarBulk(data.tableInvalidLtGtIn, data.listLiteral);
+
+				expect(userVars.getVar("table")).toBe("default");
+			});
+
+			test("Table full output with references", () => {
+				userVars.setVarBulk(data.tableFullRefs, data.basicGlobalLiteral);
+
+				expect(userVars.getVar("table", true)).toStrictEqual(data.fullTableRefOutput);
 			});
 		});
 
@@ -198,6 +265,30 @@ describe("globalRoot true", () => {
 				
 				expect(userVars.getVar("expression")).toBe("360");
 			});
+
+			test("Expression with reference for value", () => {
+				userVars.setVarBulk(data.expressionRefValue, data.basicExpressionReferenced);
+
+				expect(userVars.getVar("expression")).toBe("60");
+			});
+
+			test("Expression with reference for value", () => {
+				userVars.setVarBulk(data.expressionRefValue, data.listExpressionReferenced);
+
+				expect(userVars.getVar("expression")).toBe("[LIST math.expression1]");
+			});
+
+			test("Expression with missing function ref", () => {
+				userVars.setVar(data.expressionMissingFunc);
+
+				expect(userVars.getVar("expression")).toBe("[MISSING no]");
+			});
+		});
+
+		test("Invalid varType", () => {
+			userVars.setVar(data.invalid);
+
+			expect(userVars.getVar("var")).toBe("[NOT IMPLEMENTED]");
 		});
     });
 
@@ -259,7 +350,7 @@ describe("globalRoot false", () => {
         });
     });
 
-    describe("addVar", () => {
+    describe("getVar", () => {
         test("Scoped BasicVar var", () => {
             userVars.setVarBulk(data.basicScopedLiteral, data.basicScopedVar);
 

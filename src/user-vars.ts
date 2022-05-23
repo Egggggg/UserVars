@@ -231,13 +231,13 @@ export class UserVars {
             // added or already existed
             if (this.#addScope(value.scope, overwrite)) {
 				if (!(<Scope>this.vars[value.scope])[value.name] || overwrite) {
-					// can safely ignore because Vars[value.scope] was made into a RawScope by #addScope
 					(<Scope>this.vars[value.scope])[value.name] = value;
 					return true;
 				}
 
+				// variable at path exists and can't be overwritten
 				return false;
-            } else { // couldn't add
+            } else { // couldn't add scope
                 return false;
             }
         }
@@ -325,7 +325,7 @@ export class UserVars {
 					}
 				}
 			} else {
-				for (let i = table.value.length - 1; i > 0; i--) {
+				for (let i = table.value.length - 1; i > -1; i--) {
 					const row = table.value[i]
 					let out = true;
 
@@ -361,7 +361,7 @@ export class UserVars {
 				const followed = this.#followReference(expr.value, expr.scope, origin);
 
 				if (followed instanceof Array) {
-					return `[LIST ${expr.value}]`;
+					return `[LIST ${expr.value.value}]`;
 				}
 
 				toParse = followed;
@@ -374,7 +374,7 @@ export class UserVars {
 				// @ts-ignore
 				for (let i of expr.functions) {
 					if (typeof i === "string") {
-						toParse += `${i}; `;
+						functions += `${i}; `;
 					} else {
 						const func = this.#followReference(i, expr.scope, origin);
 	
@@ -462,7 +462,7 @@ export class UserVars {
 				}
 			} else {
 				// type mismatch
-				return false ? !full : {output: false, val1, val2};
+				return !full ? false : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "gt") {
 			if (typeof val1 === "string" && typeof val2 === "string") {
@@ -517,7 +517,7 @@ export class UserVars {
 
 				rowData.conditions.push({val1: cond.val1, val2: cond.val2, comparison: e.comparison});
 
-				if (!cond) {
+				if (!cond.output) {
 					out = false;
 				}
 			}
@@ -586,105 +586,47 @@ export class UserVars {
         }
     }
 
-    getVarAbstract(
-        locator: string | {
-            name: string;
-            scope: string;
-        }
-    ): Var {
-        if (typeof locator !== "string") {
-			locator = `${locator.scope}.${locator.name}`;
-        }
-
-		const result = get(this.vars, locator, null);
+	/**
+	 * 
+	 * @param {string} path - 
+	 * @returns 
+	 */
+    getVarAbstract(path: string): Var {
+		const result = get(this.vars, path, null);
 
 		if (isVar(result)) {
 			return result;
 		} else if (result) {
-			throw new TypeError(`${locator} points to a scope`);
+			throw new TypeError(`Variable ${path} is malformed`);
 		}
 
-		throw new ReferenceError(`Variable ${locator} not found`);
+		throw new ReferenceError(`Variable ${path} not found`);
     }
 
     /**
      * Gets a Var from a string path
-     * @param {string} locator - The path to the variable
-     * @returns {Var} The Var found at the locator
-     */
-    getRawVar(locator: string): Var;
-
-    /**
-     * Gets a Var from a name and a scope, under scope.name
-     * @param {Object} locator - The container object for the actual parameters
-     * @param {string} locator.name  - The name of the variable
-     * @param {string} locator.scope - The scope the variable is under
+     * @param {string} path - The path to the variable
      * @returns {Var} The Var found at scope.name
      */
-    getRawVar(locator: { name: string; scope: string }): Var;
-
-    /**
-     * Gets a Var from a path or a name and a scope
-     * @param {Object | string} locator - The container object for the actual parameters, or the absolute path
-     * @param {string} locator.name     - The name of the variable
-     * @param {string} locator.scope    - The scope the variable is under
-     * @returns {Var} The variable found at scope.name or locator
-     */
-    getRawVar(
-        locator?:
-            | string
-            | {
-                  name: string;
-                  scope: string;
-              }
-    ): Var {
-        // @ts-ignore
-        return this.getVarAbstract(locator);
+    getRawVar(path: string): Var {
+        return this.getVarAbstract(path);
     }
 
     /**
      * Gets a Var from a string path
-     * @param {string} locator - The path to the variable
+     * @param {string} path - The path to the variable
 	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
-     * @returns {Var} The Var found at the locator
+     * @returns {Var} The Var found at the path
      */
-	getVar(locator: string, full?: boolean): Literal | TableData;
-
-	/**
-	 * Gets a Var from a name and a scope, under scope.name
-	 * @param {Object} locator - The container object for the actual parameters
-	 * @param {string} locator.name  - The name of the variable
-	 * @param {string} locator.scope - The scope the variable is under
-	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
-	 * @returns {Var} The Var found at scope.name
-	 */
-	getVar(locator: { name: string; scope: string }, full?: boolean): Literal | TableData;
- 
-	/**
-	 * Gets a Var from a path or a name and a scope
-	 * @param {Object | string} locator - The container object for the actual parameters, or the absolute path
-	 * @param {string} locator.name     - The name of the variable
-	 * @param {string} locator.scope    - The scope the variable is under
-	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
-	 * @returns {Var} The variable found at scope.name or locator
-	 */
-	getVar(
-		locator:
-			| string
-			| {
-				name: string;
-				scope: string;
-			},
-		full?: boolean
-	 ): Literal | TableData {
-		const variable = this.getVarAbstract(locator);
+	getVar(path: string, full?: boolean): Literal | TableData {
+		const variable = this.getVarAbstract(path);
 
 		if (full && variable.varType === "table") {
 			return this.#evaluateFull(<TableVar> variable);
 		}
 
 		return this.#evaluate(variable, undefined, false);
-	 }
+	}
 
     /**
      * Normalizes a path relative to its scope.
@@ -703,7 +645,7 @@ export class UserVars {
         }
 
         // remove multiple periods in a row
-        path = path.replace(/\.+/, ".");
+        path = path.replace(/\.+/g, ".");
 
         let split = path.split(".");
         const multipleParts = split.length > 1;
