@@ -299,6 +299,66 @@ const listTableWords = {
 	varType: "list"
 } as ListVar;
 
+const tableFirst = {
+	name: "first",
+	scope: "global",
+	value: [
+		{
+			output: "yes",
+			conditions: [
+				{
+					val1: "nice",
+					comparison: "eq",
+					val2: "nice"
+				}
+			]
+		},
+		{
+			output: "no",
+			conditions: [
+				{
+					val1: "nice",
+					comparison: "eq",
+					val2: "nice"
+				}
+			]
+		}
+	],
+	default: "shouldn't",
+	priority: "first",
+	varType: "table"
+} as TableVar;
+
+const tableLast = {
+	name: "last",
+	scope: "global",
+	value: [
+		{
+			output: "no",
+			conditions: [
+				{
+					val1: "nice",
+					comparison: "eq",
+					val2: "nice"
+				}
+			]
+		},
+		{
+			output: "yes",
+			conditions: [
+				{
+					val1: "nice",
+					comparison: "eq",
+					val2: "nice"
+				}
+			]
+		}
+	],
+	default: "shouldn't",
+	priority: "last",
+	varType: "table"
+} as TableVar;
+
 describe("globalRoot true", () => {
     let userVars: UserVars;
 
@@ -452,6 +512,18 @@ describe("globalRoot true", () => {
 				userVars.setVar(tableMulti);
 
 				expect(userVars.getVar("table")).toBe("default");
+			});
+
+			test("Table priority first", () => {
+				userVars.setVar(tableFirst);
+
+				expect(userVars.getVar("first")).toBe("yes");
+			});
+
+			test("Table priority last", () => {
+				userVars.setVar(tableLast);
+
+				expect(userVars.getVar("last")).toBe("yes");
 			})
 		});
     });

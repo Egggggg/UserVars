@@ -102,7 +102,7 @@ export interface TableData {
 export interface Expression extends Var {
 	functions: Value[],
 	vars: {
-		[name: string]: Reference 
+		[name: string]: Value
 	}[],
 	value: Value,
 	varType: "expression"
@@ -295,10 +295,10 @@ export class UserVars {
 					if (current instanceof Array) {
 						output.push(`[LIST ${e.value}]`);
 					} else if (current === "[MISSING REFERENCE]") {
-						output.push(`[LIST ${e.value}]`);
+						output.push(`[MISSING ${e.value}]`);
+					} else {
+						output.push(current);
 					}
-
-					return current;
 				}
 			});
 			
@@ -392,9 +392,15 @@ export class UserVars {
 				} else {
 					const func = <string> this.#followReference(i, expr.scope, origin);
 
-					expr.value += `${func};`
+					if (func === "[MISSING REFERENCE]") {
+						return `[MISSING FUNCTION ${i.value}]`;
+					}
+
+					expr.value += `${func};`;
 				}
 			}
+
+
 		}
 
         return "[NOT IMPLEMENTED]";
