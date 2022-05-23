@@ -1,8 +1,9 @@
 import { get } from "lodash";
+import { Parser } from "expr-eval";
 
-type Comparison = "eq" | "lt" | "gt" | "in";
-type Priority = "first" | "last";
-type BasicType = "var" | "literal";
+type Comparison = string; // "eq", "lt", "gt", or "in"
+type Priority = string; // "first" or "last"
+type BasicType = string; // "var" or "literal"
 type Literal = string | string[];
 
 /**
@@ -19,24 +20,25 @@ export interface Var {
     name: string;
     scope: string;
     value: string | Value | Value[] | TableRow[];
-    varType: "basic" | "list" | "table" | "expression";
+    varType: string; //"basic", "list", "table", or "expression"
 }
 
 /**
  * Should evaluate to either another variable's value or a string
+ * varType is "basic"
  */
 export interface BasicVar extends Var {
     value: string;
     basicType: BasicType;
-    varType: "basic";
 }
 
 /**
  * Reference to a variable, used in lists and tables
+ * varType is "reference"
  */
 export interface Reference {
 	value: string;
-	varType: "reference"
+	varType: string;
 }
 
 /**
@@ -46,10 +48,11 @@ export type Value = Reference | string;
 
 /**
  * Should evaluate to an array of BasicVars
+ * varType is "list"
  */
 export interface ListVar extends Var {
     value: Value[];
-    varType: "list";
+    varType: string;
 }
 
 /**
@@ -79,12 +82,13 @@ export interface TableRowData {
 
 /**
  * Table variable, should evaluate to the single output of the first or last row where all conditions are true
+ * varType is "table"
  */
 export interface TableVar extends Var {
     priority: Priority;
     default: Value;
     value: TableRow[];
-    varType: "table";
+    varType: string;
 }
 
 /**
@@ -98,14 +102,15 @@ export interface TableData {
 
 /**
  * A mathematical expression to be evaluated
+ * varType is "expression"
  */
 export interface Expression extends Var {
-	functions: Value[],
+	functions?: Value[],
 	vars: {
 		[name: string]: Value
-	}[],
+	},
 	value: Value,
-	varType: "expression"
+	varType: string;
 }
 
 /**
@@ -127,7 +132,7 @@ export interface Vars {
  */
 export interface BasicRecipe {
     value: string;
-    basicType: "var" | "literal";
+    basicType: BasicType;
 }
 
 /**
@@ -184,6 +189,7 @@ export class UserVars {
     globalRoot: boolean;
     scopes: string[];
     vars: Vars;
+	parser: Parser;
 
     /**
      * Creates a new UserVars object for holding user defined dynamic variables
@@ -194,6 +200,8 @@ export class UserVars {
 
         this.scopes = [];
         this.vars = {};
+
+		this.parser = new Parser();
     }
 
     /**
@@ -312,7 +320,7 @@ export class UserVars {
 					let out = true;
 
 					for (let e of row.conditions) {
-						if (!this.#evalCondition(e, table, origin)) {
+						if (!this.#evalCondition(e, table.scope, origin)) {
 							out = false;
 							break;
 						}
@@ -323,17 +331,7 @@ export class UserVars {
 							return <string> table.value[i].output;
 						}
 
-						const path = this.normalizePath((<Reference> table.value[i].output).value, table.scope)
-						
-						try {
-							return this.evaluate(this.getRawVar(path), origin);
-						} catch (err) {
-							if (err instanceof ReferenceError) {
-								return "[MISSING REFERENCE]";
-							}
-			
-							throw err;
-						}
+						return this.#followReference((<Reference> table.value[i].output).value, table.scope, origin);
 					}
 				}
 			} else {
@@ -342,7 +340,7 @@ export class UserVars {
 					let out = true;
 
 					for (let e of row.conditions) {
-						if (!this.#evalCondition(e, table, origin)) {
+						if (!this.#evalCondition(e, table.scope, origin)) {
 							out = false;
 							break;
 						}
@@ -353,17 +351,7 @@ export class UserVars {
 							return <string> table.value[i].output;
 						}
 
-						const path = this.normalizePath((<Reference> table.value[i].output).value, table.scope)
-						
-						try {
-							return this.evaluate(this.getRawVar(path), origin);
-						} catch (err) {
-							if (err instanceof ReferenceError) {
-								return "[MISSING REFERENCE]";
-							}
-			
-							throw err;
-						}
+						return this.#followReference((<Reference> table.value[i].output).value, table.scope, origin);
 					}
 				}
 			}
@@ -372,35 +360,68 @@ export class UserVars {
 				return table.default;
 			}
 
-			const defaultPath = this.normalizePath((table.default).value, table.scope)
-
-			try {
-				return this.evaluate(this.getRawVar(defaultPath), origin);
-			} catch (err) {
-				if (err instanceof ReferenceError) {
-					return "[MISSING REFERENCE]";
-				}
-
-				throw err;
-			}
+			return this.#followReference(table.default.value, table.scope, origin);
 		} else if (value.varType === "expression") {
 			let expr = value as Expression;
+			let toParse: string;
+			
+			if (typeof expr.value === "string") {
+				toParse = expr.value;
+			} else {
+				const followed = this.#followReference(expr.value, expr.scope, origin);
 
-			for (let i of expr.functions) {
-				if (typeof i === "string") {
-					expr.value += `${i};`;
-				} else {
-					const func = <string> this.#followReference(i, expr.scope, origin);
+				if (followed instanceof Array) {
+					return `[LIST ${expr.value}]`;
+				}
 
-					if (func === "[MISSING REFERENCE]") {
-						return `[MISSING FUNCTION ${i.value}]`;
+				toParse = followed;
+			}
+
+			if ("functions" in expr) {
+				// prepend toParse with functions, to be used in expr.value
+				// @ts-ignore
+				for (let i of expr.functions) {
+					if (typeof i === "string") {
+						toParse = `${i}; ${toParse}`;
+					} else {
+						const func = this.#followReference(i, expr.scope, origin);
+	
+						if (func instanceof Array) return `[LIST ${i.value}]`;
+	
+						if (func === "[MISSING REFERENCE]") {
+							return `[MISSING ${i.value}]`;
+						}
+	
+						toParse = `${func}; ${toParse}`;
 					}
-
-					expr.value += `${func};`;
 				}
 			}
 
+			let parsed = this.parser.parse(toParse)
 
+			let vars = parsed.variables();
+			let input: {[name: string]: string} = {};
+
+			// evaluate all variables to be passed into parsed.evaluate()
+			for (let i of Object.keys(expr.vars)) {
+				if (!vars.includes(i)) continue;
+
+				const current = expr.vars[i];
+
+				if (typeof current === "string") {
+					input[i] = current;
+					continue;
+				}
+
+				const followed = this.#followReference(current, expr.scope, origin);
+
+				if (followed instanceof Array) return `[LIST ${current}]`;
+				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
+				
+				input[i] = followed;
+			}
+
+			return parsed.evaluate(input).toString();
 		}
 
         return "[NOT IMPLEMENTED]";
@@ -408,10 +429,12 @@ export class UserVars {
 
 	/**
 	 * Evaluates a condition from a table row, returning true or false
-	 * @param {Condition} cond - The condition to evaluate
+	 * @param {Condition} cond   - The condition to evaluate
+	 * @param {string}    scope  - The scope paths will be evaluated relative to
+	 * @param {string}    origin - For circular dependency detection 
 	 * @return {boolean} Whether the condition passes
 	 */
-	#evalCondition(cond: Condition, table: TableVar, origin: string): boolean {
+	#evalCondition(cond: Condition, scope: string, origin: string): boolean {
 		let val1;
 		let val2;
 
@@ -419,34 +442,14 @@ export class UserVars {
 			val1 = cond.val1;
 		} else {
 			val1 = cond.val1.value;
-
-			try {
-				val1 = this.normalizePath(val1, table.scope);
-				val1 = this.evaluate(this.getRawVar(val1), origin);
-			} catch (err) {
-				if (err instanceof ReferenceError) {
-					val1 = "[MISSING REFERENCE]";
-				} else {
-					throw err;
-				}
-			}
+			val1 = this.#followReference(val1, scope, origin);
 		}
 		
 		if (typeof cond.val2 === "string") {
 			val2 = cond.val2;
 		} else {
 			val2 = cond.val2.value;
-
-			try {	
-				val2 = this.normalizePath(val2, table.scope);
-				val2 = this.evaluate(this.getRawVar(val2), origin)
-			} catch (err) {
-				if (err instanceof ReferenceError) {
-					val1 = "[MISSING REFERENCE]";
-				} else {
-					throw err;
-				}
-			}
+			val2 = this.#followReference(val2, scope, origin);
 		}	
 
 		if (cond.comparison === "eq") {
