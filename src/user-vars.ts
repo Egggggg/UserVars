@@ -65,6 +65,15 @@ export interface Condition {
 }
 
 /**
+ * Condition returned from full table output
+ */
+export interface ConditionData {
+	val1: Literal;
+	comparison: Comparison;
+	val2: Literal;
+}
+
+/**
  * Row for table, should evaluate to `output`
  */
 export interface TableRow {
@@ -76,7 +85,7 @@ export interface TableRow {
  * Table row returned from full table output
  */
 export interface TableRowData {
-	conditions: Condition[];
+	conditions: ConditionData[];
 	output: Literal;
 }
 
@@ -95,9 +104,11 @@ export interface TableVar extends Var {
  * Evaluated table data returned from full table output
  */
 export interface TableData {
-	out: Literal;
+	output: Literal;
 	outIndex: number;
-	values: TableRowData[];
+	value: TableRowData[];
+	default: Literal;
+	priority: string; // "first" or "last"
 }
 
 /**
@@ -126,41 +137,6 @@ export interface Scope {
 export interface Vars {
     [name: string]: Var | Scope;
 }
-
-/**
- * Object that should be deserialized into a BasicVar
- */
-export interface BasicRecipe {
-    value: string;
-    basicType: BasicType;
-}
-
-/**
- * Object or string to deserialize into a BasicVar
- */
-export type ValueRecipe = BasicRecipe | string;
-
-/**
- * Object that should be deserialized into a Condition
- */
-export interface ConditionRecipe {
-    val1: ValueRecipe;
-    comparison: Comparison;
-    val2: ValueRecipe | ValueRecipe[];
-}
-
-/**
- * Object that should be deserialized into a TableRow
- */
-export interface RowRecipe {
-    conditions: ConditionRecipe[];
-    output: ValueRecipe;
-}
-
-/**
- * Array of RowRecipes to deserialize into a TableVar
- */
-export type TableRecipe = RowRecipe[];
 
 /**
  * Checks whether obj is a Var
@@ -238,14 +214,14 @@ export class UserVars {
     /**
      * Adds the passed variable to Vars, and the evaluated value to vars.
      * This is done automatically with the build methods
-     * @param {Var}  value                         - Variable to add to the list
-     * @param {boolean} [overwriteWithScope=false] - True if existing variable with conflicting name or scope should be overwritten
+     * @param {Var}  value                - Variable to add to the list
+     * @param {boolean} [overwrite=false] - True if existing variable with conflicting name or scope should be overwritten
      * @returns {boolean} True if variable was set
      */
-    setVar(value: Var, overwriteWithScope: boolean = false): boolean {
+    setVar(value: Var, overwrite: boolean = false): boolean {
         // variable goes to root
         if (value.scope === "global" && this.globalRoot) {
-            if (!this.vars[value.name] || overwriteWithScope) {
+            if (!this.vars[value.name] || overwrite) {
                 this.vars[value.name] = value;
                 return true;
             }
@@ -253,34 +229,48 @@ export class UserVars {
             return false;
         } else { // variable goes to a scope
             // added or already existed
-            if (this.#addScope(value.scope, overwriteWithScope)) {
-                // can safely ignore because Vars[value.scope] was made into a RawScope by #addScope
-                // @ts-ignore
-                this.vars[value.scope][value.name] = value;
-                return true;
+            if (this.#addScope(value.scope, overwrite)) {
+				if (!(<Scope>this.vars[value.scope])[value.name] || overwrite) {
+					// can safely ignore because Vars[value.scope] was made into a RawScope by #addScope
+					(<Scope>this.vars[value.scope])[value.name] = value;
+					return true;
+				}
+
+				return false;
             } else { // couldn't add
                 return false;
             }
         }
     }
 
+	/**
+	 * Helper function for setting multiple variables at once
+	 * @param {Var[]} values - Array of variable data to pass to setVar
+	 * @returns {boolean[]} Array of boolean representing whether each variable was added
+	 */
+	setVarBulk(...values: Var[]): boolean[] {
+		const output: boolean[] = [];
+
+		for (let i of values) {
+			output.push(this.setVar(i));
+		}
+
+		return output;
+	}
+
     /**
      * Evaluates a Var into a string or string[]
      * @param {Var}     value    - The value to evaluate
-     * @param {string}  origin   - The original var's path for circular dependency detection
-	 * @param {boolean} recursed - 0 on first iteration, 1 after that, should only be set from this function
+     * @param {string}  [origin=pathToVar]   - The original var's path for circular dependency detection
+	 * @param {boolean} recursed - false on first iteration, true after that, should only be set to true internally
      * @returns {Literal} The evaluated value
      */
-    evaluate(value: Var, origin: string = this.getPath(value.name, value.scope), recursed: boolean = false): Literal {
+    #evaluate(value: Var, origin: string = this.getPath(value.name, value.scope), recursed: boolean = false): Literal {
 		const thisPath = this.getPath(value.name, value.scope);
 
         if (recursed && origin === thisPath) {
             return "[CIRCULAR DEPENDENCY]";
         }
-
-		if (!origin) {
-			origin = thisPath;
-		}
 
         if (value.varType === "basic") {
             const basic = value as BasicVar;
@@ -317,10 +307,10 @@ export class UserVars {
 			if (table.priority === "first") {
 				for (let i = 0; i < table.value.length; i++) {
 					const row = table.value[i]
-					let out = true;
+					let out = true
 
 					for (let e of row.conditions) {
-						if (!this.#evalCondition(e, table.scope, origin)) {
+						if (!this.#evalCondition(e, table.scope, origin, false)) {
 							out = false;
 							break;
 						}
@@ -340,7 +330,7 @@ export class UserVars {
 					let out = true;
 
 					for (let e of row.conditions) {
-						if (!this.#evalCondition(e, table.scope, origin)) {
+						if (!this.#evalCondition(e, table.scope, origin, false)) {
 							out = false;
 							break;
 						}
@@ -377,26 +367,35 @@ export class UserVars {
 				toParse = followed;
 			}
 
+			let functions = "";
+
 			if ("functions" in expr) {
 				// prepend toParse with functions, to be used in expr.value
 				// @ts-ignore
 				for (let i of expr.functions) {
 					if (typeof i === "string") {
-						toParse = `${i}; ${toParse}`;
+						toParse += `${i}; `;
 					} else {
 						const func = this.#followReference(i, expr.scope, origin);
 	
-						if (func instanceof Array) return `[LIST ${i.value}]`;
+						if (func instanceof Array) {
+							for (let e of func) {
+								functions += `${e}; `;
+							}
+
+							continue;
+						};
 	
 						if (func === "[MISSING REFERENCE]") {
 							return `[MISSING ${i.value}]`;
 						}
 	
-						toParse = `${func}; ${toParse}`;
+						functions += `${func}; `;
 					}
 				}
 			}
 
+			toParse = `${functions}${toParse}`;
 			let parsed = this.parser.parse(toParse)
 
 			let vars = parsed.variables();
@@ -415,10 +414,9 @@ export class UserVars {
 
 				const followed = this.#followReference(current, expr.scope, origin);
 
-				if (followed instanceof Array) return `[LIST ${current}]`;
 				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
 				
-				input[i] = followed;
+				input[i] = followed.toString();
 			}
 
 			return parsed.evaluate(input).toString();
@@ -431,10 +429,11 @@ export class UserVars {
 	 * Evaluates a condition from a table row, returning true or false
 	 * @param {Condition} cond   - The condition to evaluate
 	 * @param {string}    scope  - The scope paths will be evaluated relative to
-	 * @param {string}    origin - For circular dependency detection 
+	 * @param {string}    origin - For circular dependency detection
+	 * @param {boolean}   full   - Whether operand values should be returned 
 	 * @return {boolean} Whether the condition passes
 	 */
-	#evalCondition(cond: Condition, scope: string, origin: string): boolean {
+	#evalCondition(cond: Condition, scope: string, origin: string, full: boolean): boolean | {output: boolean, val1: Literal, val2: Literal} {
 		let val1;
 		let val2;
 
@@ -454,51 +453,114 @@ export class UserVars {
 
 		if (cond.comparison === "eq") {
 			if (!comparisons.eq(val1, val2)) {
-				return false
+				return !full ? false : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "lt") {
 			if (typeof val1 === "string" && typeof val2 === "string") {
 				if (!comparisons.lt(val1, val2)) {
-					return false
+					return !full ? false : {output: false, val1, val2};
 				}
 			} else {
 				// type mismatch
-				return false;
+				return false ? !full : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "gt") {
 			if (typeof val1 === "string" && typeof val2 === "string") {
 				if (!comparisons.gt(val1, val2)) {
-					return false
+					return !full ? false : {output: false, val1, val2};
 				}
 			} else {
 				// type mismatch
-				return false;
+				return !full ? false : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "in") {
 			if (typeof val1 === "string" && val2 instanceof Array) {
 				if (!comparisons.in(val1, val2)) {
-					return false
+					return !full ? false : {output: false, val1, val2};
 				}
 			} else {
 				// type mismatch
-				return false;
+				return !full ? false : {output: false, val1, val2};
 			}
 		}
 
-		return true;
+		return !full ? true : {output: true, val1, val2};
 	}
 	
+	/**
+	 * Evaluates and returns full data of a table, including all row outputs and condition operands
+	 * @param {TableVar} table - Table to evaluate
+	 * @returns {TableData} The fully evaluated table data
+	 */
+	#evaluateFull(table: TableVar): TableData {
+		const output = {
+			output: "",
+			outIndex: -1,
+			value: [],
+			default: "",
+			priority: table.priority
+		} as TableData;
+
+		const origin = this.getPath(table.name, table.scope);
+		let found = false;
+
+		for (let i = 0; i < table.value.length; i++) {
+			const row = table.value[i];
+			const rowData = {
+				conditions: [],
+				output: ""
+			} as TableRowData;
+			let out = true;
+
+			for (let e of row.conditions) {
+				const cond = <{output: boolean, val1: Literal, val2: Literal}> this.#evalCondition(e, table.scope, origin, true);
+
+				rowData.conditions.push({val1: cond.val1, val2: cond.val2, comparison: e.comparison});
+
+				if (!cond) {
+					out = false;
+				}
+			}
+
+			let rowOut;
+
+			if (typeof row.output === "string") {
+				rowOut = row.output;
+			} else {
+				rowOut = this.#followReference(row.output, table.scope, origin);
+			}
+
+			output.value.push({...rowData, output: rowOut});
+
+			if (out && (!found || table.priority === "last")) {
+				found = true;
+				output.output = rowOut;
+				output.outIndex = i;
+			}
+		}
+
+		let defaultVal;
+
+		if (typeof table.default === "string") {
+			defaultVal = table.default;
+		} else {
+			defaultVal = this.#followReference(table.default.value, table.scope, origin);
+		}
+
+		output.default = defaultVal;
+
+		if (!found) output.output = defaultVal;
+
+		return output;
+	}
+
     /**
      * Gets the path to a variable from its scope and name
      * @param {string} name             - The name of the variable
      * @param {string} [scope="global"] - The scope of the variable
      * @returns {string} The path to the variable, accounting for globalRoot and
      */
-    getPath(name: string, scope?: string): string {
-        if (!scope) {
-            scope = "global";
-        }
-
+    getPath(name: string, scope: string = "global"): string {
         if (scope !== "global") {
             // return to global
             if (name.startsWith("../")) {
@@ -586,27 +648,27 @@ export class UserVars {
 	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
      * @returns {Var} The Var found at the locator
      */
-	 getVar(locator: string, full?: boolean): Literal;
+	getVar(locator: string, full?: boolean): Literal | TableData;
 
-	 /**
-	  * Gets a Var from a name and a scope, under scope.name
-	  * @param {Object} locator - The container object for the actual parameters
-	  * @param {string} locator.name  - The name of the variable
-	  * @param {string} locator.scope - The scope the variable is under
-	  * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
-	  * @returns {Var} The Var found at scope.name
-	  */
-	 getVar(locator: { name: string; scope: string }, full?: boolean): Literal;
+	/**
+	 * Gets a Var from a name and a scope, under scope.name
+	 * @param {Object} locator - The container object for the actual parameters
+	 * @param {string} locator.name  - The name of the variable
+	 * @param {string} locator.scope - The scope the variable is under
+	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
+	 * @returns {Var} The Var found at scope.name
+	 */
+	getVar(locator: { name: string; scope: string }, full?: boolean): Literal | TableData;
  
-	 /**
-	  * Gets a Var from a path or a name and a scope
-	  * @param {Object | string} locator - The container object for the actual parameters, or the absolute path
-	  * @param {string} locator.name     - The name of the variable
-	  * @param {string} locator.scope    - The scope the variable is under
-	  * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
-	  * @returns {Var} The variable found at scope.name or locator
-	  */
-	 getVar(
+	/**
+	 * Gets a Var from a path or a name and a scope
+	 * @param {Object | string} locator - The container object for the actual parameters, or the absolute path
+	 * @param {string} locator.name     - The name of the variable
+	 * @param {string} locator.scope    - The scope the variable is under
+	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
+	 * @returns {Var} The variable found at scope.name or locator
+	 */
+	getVar(
 		locator:
 			| string
 			| {
@@ -614,13 +676,14 @@ export class UserVars {
 				scope: string;
 			},
 		full?: boolean
-	 ): Literal {
-		 // @ts-ignore
-		 const variable = this.getVarAbstract(locator);
+	 ): Literal | TableData {
+		const variable = this.getVarAbstract(locator);
 
-		 // if (variable.varType !== "table" || !full) {
-			return this.evaluate(variable);
-		 // }
+		if (full && variable.varType === "table") {
+			return this.#evaluateFull(<TableVar> variable);
+		}
+
+		return this.#evaluate(variable, undefined, false);
 	 }
 
     /**
@@ -631,11 +694,7 @@ export class UserVars {
      * @param {string} [scope="global"] - The scope the path is relative to
      * @returns {string} The normalized path
      */
-    normalizePath(path: string, scope?: string): string {
-        if (!scope) {
-            scope = "global";
-        }
-
+    normalizePath(path: string, scope: string = "global"): string {
         let up = false;
 
         if (path.startsWith("../") && scope !== "global") {
@@ -674,7 +733,7 @@ export class UserVars {
 		try {
 			const path = this.normalizePath(ref, scope);
 
-			return this.evaluate(this.getRawVar(path), origin, true);
+			return this.#evaluate(this.getRawVar(path), origin, true);
 		} catch (err) {
 			if (err instanceof ReferenceError) {
 				return("[MISSING REFERENCE]");

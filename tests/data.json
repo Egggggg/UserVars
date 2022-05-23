@@ -321,6 +321,62 @@
         "priority": "last",
         "default": "shouldn't"
     },
+	"fullTableFirstOutput": {
+		"output": "yes",
+		"outIndex": 0,
+		"value": [
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"default": "shouldn't",
+		"priority": "first"
+	},
+	"fullTableLastOutput": {
+		"output": "yes",
+		"outIndex": 1,
+		"value": [
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"default": "shouldn't",
+		"priority": "last"
+	},
     "expressionLiteral": {
         "name": "var",
         "scope": "global",
@@ -392,5 +448,33 @@
         "value": "f(x) = 4 * x",
         "varType": "basic",
         "basicType": "literal"
-    }
+    },
+	"expressionFunctionList": {
+		"name": "expression",
+		"scope": "global",
+		"value": "a(x) + b(x) + c(x)",
+		"varType": "expression",
+		"functions": [
+			{
+				"value": "math.functions",
+				"varType": "reference"
+			}
+		],
+		"vars": {
+			"x": {
+				"value": "var",
+				"varType": "reference"
+			}
+		}
+	},
+	"listFunctions": {
+		"name": "functions",
+		"scope": "math",
+		"value": [
+			"a(x) = 3 * x",
+			"b(x) = 4 * x",
+			"c(x) = 5 * x"
+		],
+		"varType": "list"
+	}
 }
