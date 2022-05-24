@@ -814,5 +814,11 @@
 			}
 		],
 		"varType": "list"
+	},
+	"basicTable": {
+		"name": "var",
+		"scope": "global",
+		"value": "nice",
+		"varType": "table"
 	}
 }

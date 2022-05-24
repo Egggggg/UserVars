@@ -9,7 +9,7 @@
     },
     "name": "uservars",
     "version": "1.0.0",
-    "description": "Module for letting users create variables",
+    "description": "Enables end users to create variables",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
@@ -37,6 +37,8 @@
         "lodash": "^4.17.21"
     },
     "files": [
-        "/dist"
+        "dist/",
+		"README.md",
+		"LICENSE"
     ]
 }

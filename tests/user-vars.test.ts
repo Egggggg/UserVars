@@ -78,6 +78,12 @@ describe("globalRoot true", () => {
 
 				expect(() => userVars.getVar("scope1")).toThrow();
 			});
+
+			test("With table for varType", () => {
+				userVars.setVar(data.basicTable);
+
+				expect(() => userVars.getVar("var")).toThrow();
+			});
 		});
 
 		describe("List", () => {
