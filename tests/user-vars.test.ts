@@ -5,7 +5,7 @@ describe("globalRoot true", () => {
     let userVars: UserVars;
 
     beforeEach(() => {
-        userVars = new UserVars(true);
+        userVars = new UserVars();
     });
 
     describe("getVar", () => {
@@ -13,7 +13,7 @@ describe("globalRoot true", () => {
 			test("BasicVar literal", () => {
 				userVars.setVar(data.basicGlobalLiteral);
 
-				expect(userVars.getVar("nice")).toBe("cool");
+				expect(userVars.getVar("global.nice")).toBe("cool");
 			});
 
 			test("BasicVar var", () => {
@@ -325,42 +325,6 @@ describe("globalRoot true", () => {
 
         test("Up to global then back to scope", () => {
             expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
-        });
-    });
-});
-
-describe("globalRoot false", () => {
-    let userVars: UserVars;
-
-    beforeEach(() => {
-        userVars = new UserVars(false);
-    });
-
-    describe("getPath", () => {
-        describe("global scope", () => {
-            test("Traverse up to global", () => {
-                expect(userVars.getPath("../var", "scope")).toBe("global.var");
-            });
-
-            test("Never leave global", () => {
-                expect(userVars.getPath("var", "global")).toBe("global.var");
-            });
-
-            test("No scope argument", () => {
-                expect(userVars.getPath("var")).toBe("global.var");
-            });
-        });
-
-        test("Up to global then back to scope", () => {
-            expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
-        });
-    });
-
-    describe("getVar", () => {
-        test("Scoped BasicVar var", () => {
-            userVars.setVarBulk(data.basicScopedLiteral, data.basicScopedVar);
-
-            expect(userVars.getVar("scope1.niceVar")).toBe("epic");
         });
     });
 });

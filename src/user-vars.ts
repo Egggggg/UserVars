@@ -157,23 +157,18 @@ const comparisons = {
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
  * @class
- * @property {boolean}  globalRoot   - True if the global variables are contained at the root level, else false
  * @property {string[]} scopes       - List of scopes currently in use
  * @property {Vars}     vars         - Variable mapping, {name: value}, scoped vars are nested into scope name
  */
 export class UserVars {
-    globalRoot: boolean;
     scopes: string[];
     vars: Vars;
 	parser: Parser;
 
     /**
      * Creates a new UserVars object for holding user defined dynamic variables
-     * @param {boolean} globalRoot  - True if the global variables are contained at the root level, else false
      */
-    constructor(globalRoot: boolean) {
-        this.globalRoot = Boolean(globalRoot);
-
+    constructor() {
         this.scopes = [];
         this.vars = {};
 
@@ -220,7 +215,7 @@ export class UserVars {
      */
     setVar(value: Var, overwrite: boolean = false): boolean {
         // variable goes to root
-        if (value.scope === "global" && this.globalRoot) {
+        if (value.scope === "global") {
             if (!this.vars[value.name] || overwrite) {
                 this.vars[value.name] = value;
                 return true;
@@ -558,31 +553,19 @@ export class UserVars {
      * Gets the path to a variable from its scope and name
      * @param {string} name             - The name of the variable
      * @param {string} [scope="global"] - The scope of the variable
-     * @returns {string} The path to the variable, accounting for globalRoot and
+     * @returns {string} The path to the variable
      */
     getPath(name: string, scope: string = "global"): string {
         if (scope !== "global") {
             // return to global
             if (name.startsWith("../")) {
                 name = name.replace("../", "");
-
-                // global is root, so return the name at root
-                // or
-                // name already includes a scope, so include it
-                if (this.globalRoot || name.indexOf(".") > -1) {
-                    return name;
-                }
-
-                return `global.${name}`;
+               	return name;
             }
 
             return `${scope}.${name}`;
         } else {
-            if (this.globalRoot) {
-                return name;
-            }
-
-            return `global.${name}`;
+            return name;
         }
     }
 
@@ -592,7 +575,7 @@ export class UserVars {
 	 * @returns 
 	 */
     getVarAbstract(path: string): Var {
-		const result = get(this.vars, path, null);
+		const result = get(this.vars, this.normalizePath(path), null);
 
 		if (isVar(result)) {
 			return result;
@@ -644,6 +627,10 @@ export class UserVars {
             path = path.replace("../", "");
         }
 
+		if (path.startsWith("global.")) {
+			path = path.replace("global.", "");
+		}
+
         // remove multiple periods in a row
         path = path.replace(/\.+/g, ".");
 
@@ -653,10 +640,6 @@ export class UserVars {
         split = [split[0], split[split.length - 1]];
 
         if ((scope === "global" || up) && !multipleParts) {
-            if (!this.globalRoot) {
-                return `global.${split[0]}`;
-            }
-
             return split[0];
         }
 
