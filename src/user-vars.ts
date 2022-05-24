@@ -115,7 +115,7 @@ export interface TableData {
  * A mathematical expression to be evaluated
  * varType is "expression"
  */
-export interface Expression extends Var {
+export interface ExpressionVar extends Var {
 	functions?: Value[],
 	vars: {
 		[name: string]: Value
@@ -268,6 +268,9 @@ export class UserVars {
         }
 
         if (value.varType === "basic") {
+			if (typeof value.value !== "string") throw new TypeError(`Basic variable value must be of type string (${value.scope}.${value.name})`);
+			if (!("basicType" in value)) throw new TypeError(`Basic variables must have a "basicType" property (${value.scope}.${value.name})`);
+
             const basic = value as BasicVar;
 
             if (basic.basicType === "literal") {
@@ -276,6 +279,12 @@ export class UserVars {
 
 			return this.#followReference(basic.value, basic.scope, origin);
         } else if (value.varType === "list") {
+			if (
+				!(value.value instanceof Array) 
+				|| (<Array<string | Value | TableRow>>value.value).filter((i) => {
+					typeof i !== "string"
+				}).length > 0) throw new TypeError(`List variable value must be of type string[] (${value.scope}.${value.name})`);
+
 			const output: string[] = [];
 			const list = value as ListVar;
 
@@ -297,6 +306,14 @@ export class UserVars {
 			
 			return output;
 		} else if (value.varType === "table") {
+			if (!("priority" in value) || !["first", "last"].includes((<TableVar>value).priority)) throw new TypeError(`Table "variable" priority field must be either "first" or "last" (${value.scope}.${value.name}))`);
+			if (!("default" in value) || !(typeof (<TableVar>value).default === "string")) throw new TypeError(`Table "default" field must be of type string (${value.scope}.${value.name})`);
+			if (
+				!(value.value instanceof Array) 
+				|| (<Array<string | Value | TableRow>>value.value).filter((i) => {
+					typeof i === "string" || "varType" in i
+				}).length > 0) throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
+
 			const table = value as TableVar;
 
 			if (table.priority === "first") {
@@ -347,7 +364,22 @@ export class UserVars {
 
 			return this.#followReference(table.default.value, table.scope, origin);
 		} else if (value.varType === "expression") {
-			let expr = value as Expression;
+			if (
+				!("vars" in value) || 
+					Object.keys((<ExpressionVar>value).vars).filter((i) => {
+						typeof i !== "string" && !("varType" in i)
+					}).length > 0
+			) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
+
+			if (
+				"functions" in value && (
+					!((<ExpressionVar>value).functions instanceof Array) ||
+					(<Value[]>(<ExpressionVar>value).functions).filter((i) => {
+						typeof i !== "string" && !("varType" in i)
+					}).length > 0)
+			) throw new TypeError(`Expression "functions" field must be of type Value[] (${value.scope}.${value.name})`);
+
+			let expr = value as ExpressionVar;
 			let toParse: string;
 			
 			if (typeof expr.value === "string") {
