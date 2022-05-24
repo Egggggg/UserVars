@@ -121,12 +121,11 @@ describe("globalRoot true", () => {
 				]);
 			})
 
-			test("List of invalid variables", () => {
-				userVars.setVarBulk(data.listLiteral, data.listInvalid);
+			test("List of with missing reference", () => {
+				userVars.setVarBulk(data.listMissingRef);
 
 				expect(userVars.getVar("list2")).toStrictEqual([
-					"[MISSING no]",
-					"[LIST list]"
+					"[MISSING no]"
 				]);
 			});
 
@@ -134,6 +133,20 @@ describe("globalRoot true", () => {
 				userVars.setVarBulk(data.listRefScope, data.basicScopedLiteral);
 
 				expect(() => userVars.getVar("list")).toThrow();
+			});
+
+			test("List with reference to list", () => {
+				userVars.setVarBulk(data.listRefList, data.listLiteral);
+
+				expect(userVars.getVar("list2")).toStrictEqual([
+					"cool and good",
+					"nice",
+					"nice2",
+					"nice3",
+					"nice4",
+					"cool (nice)",
+					"very cool"
+				]);
 			});
 		});
 
@@ -223,7 +236,7 @@ describe("globalRoot true", () => {
 			});
 
 			test("Table invalid lt/gt types and missing entry in list", () => {
-				userVars.setVarBulk(data.tableInvalidLtGtIn, data.listLiteral);
+				userVars.setVarBulk(data.tableInvalidIn, data.listLiteral);
 
 				expect(userVars.getVar("table")).toBe("default");
 			});
@@ -232,6 +245,38 @@ describe("globalRoot true", () => {
 				userVars.setVarBulk(data.tableFullRefs, data.basicGlobalLiteral);
 
 				expect(userVars.getVar("table", true)).toStrictEqual(data.fullTableRefOutput);
+			});
+
+			describe("Table list comparisons", () => {
+				test("Eq", () => {
+					userVars.setVarBulk(data.tableCompareLists, data.listLiteral, data.listCompare2);
+
+					expect(userVars.getVar("table")).toBe("eq");
+				});
+
+				test("Lt", () => {
+					userVars.setVarBulk(data.tableCompareLists, data.listLiteral, data.basicTableListLt);
+
+					expect(userVars.getVar("table")).toBe("lt");
+				});
+
+				test("Gt", () => {
+					userVars.setVarBulk(data.tableCompareLists, data.listLiteral, data.basicTableListGt);
+
+					expect(userVars.getVar("table")).toBe("gt");
+				});
+
+				test("Gt with list as second operand", () => {
+					userVars.setVarBulk(data.tableCompareLists, data.listLiteral, data.basicTableListGt2);
+
+					expect(userVars.getVar("table")).toBe("gt2");
+				});
+
+				test("In", () => {
+					userVars.setVarBulk(data.tableCompareLists, data.listLiteral, data.listSublist);
+
+					expect(userVars.getVar("table")).toBe("in");
+				});
 			});
 		});
 

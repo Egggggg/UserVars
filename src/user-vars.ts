@@ -149,10 +149,61 @@ function isVar(obj: Var | Scope | null): obj is Var {
 }
 
 const comparisons = {
-	eq: (arg1: Literal, arg2: Literal) => arg1 === arg2,
-	lt: (arg1: string, arg2: string) => parseFloat(arg1) < parseFloat(arg2),
-	gt: (arg1: string, arg2: string) => parseFloat(arg1) > parseFloat(arg2),
-	"in": (arg1: string, arg2: string[]) => arg2.indexOf(arg1) > -1
+	eq: (arg1: Literal, arg2: Literal) => {
+		if (typeof arg1 !== typeof arg2) {
+			return false;
+		}
+
+		if (typeof arg1 === "string") {
+			return arg1 === arg2;
+		}
+
+		// both are lists
+		return arg1.filter(i => !arg2.includes(i)).concat((<string[]>arg2).filter(i => !arg1.includes(i))).length === 0
+	},
+	lt: (arg1: Literal, arg2: Literal) => {
+		let num1: number;
+		let num2: number;
+
+		if (typeof arg1 === "string") {
+			num1 = parseFloat(arg1);
+		} else {
+			num1 = arg1.length;
+		}
+
+		if (typeof arg2 === "string") {
+			num2 = parseFloat(arg2);
+		} else {
+			num2 = arg2.length;
+		}
+
+		return num1 < num2;
+	},
+	gt: (arg1: Literal, arg2: Literal) => {
+		let num1: number;
+		let num2: number;
+
+		if (typeof arg1 === "string") {
+			num1 = parseFloat(arg1);
+		} else {
+			num1 = arg1.length;
+		}
+
+		if (typeof arg2 === "string") {
+			num2 = parseFloat(arg2);
+		} else {
+			num2 = arg2.length;
+		}
+
+		return num1 > num2;
+	},
+	"in": (arg1: Literal, arg2: string[]) => {
+		if (typeof arg1 === "string") {
+			return arg2.includes(arg1);
+		}
+
+		return arg1.every(i => arg2.includes(i));
+	}
 };
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
@@ -295,7 +346,7 @@ export class UserVars {
 					const current = this.#followReference(e.value, list.scope, origin);
 
 					if (current instanceof Array) {
-						output.push(`[LIST ${e.value}]`);
+						output.push(...current);
 					} else if (current === "[MISSING REFERENCE]") {
 						output.push(`[MISSING ${e.value}]`);
 					} else {
@@ -307,7 +358,7 @@ export class UserVars {
 			return output;
 		} else if (value.varType === "table") {
 			if (!("priority" in value) || !["first", "last"].includes((<TableVar>value).priority)) throw new TypeError(`Table "variable" priority field must be either "first" or "last" (${value.scope}.${value.name}))`);
-			if (!("default" in value) || !(typeof (<TableVar>value).default === "string")) throw new TypeError(`Table "default" field must be of type string (${value.scope}.${value.name})`);
+			if (!("default" in value) || (!(typeof (<TableVar>value).default === "string") && !("varType" in <Reference>(<TableVar>value).default))) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
 			if (
 				!(value.value instanceof Array) 
 				|| (<Array<string | Value | TableRow>>value.value).filter((i) => {
@@ -483,25 +534,15 @@ export class UserVars {
 				return !full ? false : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "lt") {
-			if (typeof val1 === "string" && typeof val2 === "string") {
-				if (!comparisons.lt(val1, val2)) {
-					return !full ? false : {output: false, val1, val2};
-				}
-			} else {
-				// type mismatch
+			if (!comparisons.lt(val1, val2)) {
 				return !full ? false : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "gt") {
-			if (typeof val1 === "string" && typeof val2 === "string") {
-				if (!comparisons.gt(val1, val2)) {
-					return !full ? false : {output: false, val1, val2};
-				}
-			} else {
-				// type mismatch
+			if (!comparisons.gt(val1, val2)) {
 				return !full ? false : {output: false, val1, val2};
 			}
 		} else if (cond.comparison === "in") {
-			if (typeof val1 === "string" && val2 instanceof Array) {
+			if (val2 instanceof Array) {
 				if (!comparisons.in(val1, val2)) {
 					return !full ? false : {output: false, val1, val2};
 				}

@@ -153,21 +153,6 @@
         ],
         "varType": "list"
     },
-	"listInvalid": {
-		"name": "list2",
-		"scope": "global",
-		"value": [
-			{
-				"value": "no",
-				"varType": "reference"
-			},
-			{
-				"value": "list",
-				"varType": "reference"
-			}
-		],
-		"varType": "list"
-	},
     "basicListCircular": {
         "name": "var2",
         "scope": "global",
@@ -175,6 +160,30 @@
         "varType": "basic",
         "basicType": "var"
     },
+	"listMissingRef": {
+		"name": "list2",
+		"scope": "global",
+		"value": [
+			{
+				"value": "no",
+				"varType": "reference"
+			}
+		],
+		"varType": "list"
+	},
+	"listRefList": {
+		"name": "list2",
+		"scope": "global",
+		"value": [
+			"cool and good",
+			{
+				"value": "list",
+				"varType": "reference"
+			},
+			"very cool"
+		],
+		"varType": "list"
+	},
     "tableLiteral": {
         "name": "literal",
         "scope": "global",
@@ -713,38 +722,12 @@
 		"varType": "cisab",
 		"basicType": "literal"
 	},
-	"tableInvalidLtGtIn": {
+	"tableInvalidIn": {
 		"name": "table",
 		"scope": "global",
 		"value": [
 			{
 				"output": "how",
-				"conditions": [
-					{
-						"val1": {
-							"value": "list",
-							"varType": "reference"
-						},
-						"comparison": "lt",
-						"val2": "2"
-					}
-				]
-			},
-			{
-				"output": "how 2",
-				"conditions": [
-					{
-						"val1": {
-							"value": "list",
-							"varType": "reference"
-						},
-						"comparison": "gt",
-						"val2": "2"
-					}
-				]
-			},
-			{
-				"output": "how 3",
 				"conditions": [
 					{
 						"val1": "cool",
@@ -820,5 +803,132 @@
 		"scope": "global",
 		"value": "nice",
 		"varType": "table"
+	},
+	"tableCompareLists": {
+		"name": "table",
+		"scope": "global",
+		"value": [
+			{
+				"output": "eq",
+				"conditions": [
+					{
+						"val1": {
+							"value": "list",
+							"varType": "reference"
+						},
+						"comparison": "eq",
+						"val2": {
+							"value": "list2",
+							"varType": "reference"
+						}
+					}
+				]
+			},
+			{
+				"output": "lt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "list",
+							"varType": "reference"
+						},
+						"comparison": "lt",
+						"val2": {
+							"value": "var",
+							"varType": "reference"
+						}
+					}
+				]
+			},
+			{
+				"output": "gt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "list",
+							"varType": "reference"
+						},
+						"comparison": "gt",
+						"val2": {
+							"value": "var",
+							"varType": "reference"
+						}
+					}
+				]
+			},
+			{
+				"output": "gt2",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var2",
+							"varType": "reference"
+						},
+						"comparison": "gt",
+						"val2": {
+							"value": "list",
+							"varType": "reference"
+						}
+					}
+				]
+			},
+			{
+				"output": "in",
+				"conditions": [
+					{
+						"val1": {
+							"value": "sublist",
+							"varType": "reference"
+						},
+						"comparison": "in",
+						"val2": {
+							"value": "list",
+							"varType": "reference"
+						}
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"default": "default",
+		"priority": "first"
+	},
+	"listCompare2": {
+		"name": "list2",
+		"scope": "global",
+		"value": [
+			{
+				"value": "list",
+				"varType": "reference"
+			}
+		],
+		"varType": "list"
+	},
+	"listSublist": {
+		"name": "sublist",
+		"scope": "global",
+		"value": ["nice", "nice3"],
+		"varType": "list"
+	},
+	"basicTableListLt": {
+		"name": "var",
+		"scope": "global",
+		"value": "10",
+		"varType": "basic",
+		"basicType": "literal"
+	},
+	"basicTableListGt": {
+		"name": "var",
+		"scope": "global",
+		"value": "0",
+		"varType": "basic",
+		"basicType": "literal"
+	},
+	"basicTableListGt2": {
+		"name": "var2",
+		"scope": "global",
+		"value": "10",
+		"varType": "basic",
+		"basicType": "literal"
 	}
 }
