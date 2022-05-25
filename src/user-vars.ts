@@ -19,7 +19,7 @@ export interface Deps {
 export interface Var {
     name: string;
     scope: string;
-    value: string | Value | Value[] | TableRow[];
+    value: string | Reference | Value | Value[] | TableRow[];
     varType: string; //"basic", "list", "table", or "expression"
 }
 
@@ -28,8 +28,7 @@ export interface Var {
  * varType is "basic"
  */
 export interface BasicVar extends Var {
-    value: string;
-    basicType: BasicType;
+    value: string | Reference;
 }
 
 /**
@@ -265,6 +264,18 @@ export class UserVars {
      * @returns {boolean} True if variable was set
      */
     setVar(value: Var, overwrite: boolean = false): boolean {
+		const pattern = /[A-Z_]+/gi
+		const nameMatch = value.name.match(pattern);
+		const scopeMatch = value.scope.match(pattern);
+
+		if (!nameMatch || nameMatch[0] !== value.name) {
+			throw `Name must match pattern /[A-Z_]+/gi exactly (${value.scope}.${value.name})`;
+		}
+
+		if (!scopeMatch || scopeMatch[0] !== value.scope) {
+			throw `Scope must match pattern /[A-Z_]+/gi exactly (${value.scope}.${value.name})`;
+		}
+
         // variable goes to root
         if (value.scope === "global") {
             if (!this.vars[value.name] || overwrite) {
@@ -274,7 +285,7 @@ export class UserVars {
 
             return false;
         } else { // variable goes to a scope
-            // added or already existed
+            // successfully added or already existed
             if (this.#addScope(value.scope, overwrite)) {
 				if (!(<Scope>this.vars[value.scope])[value.name] || overwrite) {
 					(<Scope>this.vars[value.scope])[value.name] = value;
@@ -319,12 +330,11 @@ export class UserVars {
         }
 
         if (value.varType === "basic") {
-			if (typeof value.value !== "string") throw new TypeError(`Basic variable value must be of type string (${value.scope}.${value.name})`);
-			if (!("basicType" in value)) throw new TypeError(`Basic variables must have a "basicType" property (${value.scope}.${value.name})`);
+			if (typeof value.value !== "string" && !("varType" in value.value)) throw new TypeError(`Basic variable value must be of type string (${value.scope}.${value.name})`);
 
             const basic = value as BasicVar;
 
-            if (basic.basicType === "literal") {
+            if (typeof basic.value === "string") {
                 return basic.value;
             }
 

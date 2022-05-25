@@ -3,92 +3,103 @@
         "name": "nice",
         "scope": "global",
         "value": "cool",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "basicGlobalLiteral2": {
         "name": "nice",
         "scope": "global",
         "value": "epic",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "basicGlobalVar": {
         "name": "niceVar",
         "scope": "global",
-        "value": "nice",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "nice",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicGlobalVar2": {
         "name": "niceVar2",
         "scope": "global",
-        "value": "niceVar",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "niceVar",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicScopedLiteral": {
         "name": "nice",
         "scope": "scope1",
         "value": "epic",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
 	"basicScopedLiteral2": {
 		"name": "nice",
 		"scope": "scope1",
 		"value": "impossible",
-		"varType": "basic",
-		"basicType": "literal"
+		"varType": "basic"
 	},
     "basicScopedVar": {
         "name": "niceVar",
         "scope": "scope1",
-        "value": "nice",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "nice",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicCircular": {
         "name": "var",
         "scope": "global",
-        "value": "var",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "var",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicCircular1": {
         "name": "var1",
         "scope": "global",
-        "value": "var2",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "var2",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicCircular2": {
         "name": "var2",
         "scope": "global",
-        "value": "var3",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "var3",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicCircular3": {
         "name": "var3",
         "scope": "global",
-        "value": "var4",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "var4",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
     "basicCircular4": {
         "name": "var4",
         "scope": "global",
-        "value": "var1",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "var1",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
 	"basicScopeNice": {
 		"name": "cool",
 		"scope": "nice",
 		"value": "yeah !",
-		"varType": "basic",
-		"basicType": "literal"
+		"varType": "basic"
 	},
     "listLiteral": {
         "name": "list",
@@ -117,8 +128,7 @@
         "name": "nice",
         "scope": "chaos",
         "value": "chaos city",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "listRefScoped": {
         "name": "list",
@@ -156,9 +166,11 @@
     "basicListCircular": {
         "name": "var2",
         "scope": "global",
-        "value": "list",
-        "varType": "basic",
-        "basicType": "var"
+        "value": {
+			"value": "list",
+			"varType": "reference"
+		},
+        "varType": "basic"
     },
 	"listMissingRef": {
 		"name": "list2",
@@ -271,29 +283,25 @@
         "name": "var",
         "scope": "global",
         "value": "34",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "basicTableLt": {
         "name": "var",
         "scope": "global",
         "value": "0",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "basicTableGt": {
         "name": "var",
         "scope": "global",
         "value": "100",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "basicTableIn": {
         "name": "var",
         "scope": "global",
         "value": "words",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "listTableWords": {
         "name": "listOfWords",
@@ -583,8 +591,7 @@
         "name": "var",
         "scope": "global",
         "value": "30",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
     "expressionReference": {
         "name": "expression",
@@ -639,8 +646,7 @@
         "name": "function",
         "scope": "math",
         "value": "f(x) = 4 * x",
-        "varType": "basic",
-        "basicType": "literal"
+        "varType": "basic"
     },
 	"expressionFunctionList": {
 		"name": "expression",
@@ -686,8 +692,7 @@
 		"name": "expression1",
 		"scope": "math",
 		"value": "4 * x",
-		"varType": "basic",
-		"basicType": "literal"
+		"varType": "basic"
 	},
 	"listExpressionReferenced": {
 		"name": "expression1",
@@ -719,8 +724,7 @@
 		"name": "var",
 		"scope": "global",
 		"value": "nice",
-		"varType": "cisab",
-		"basicType": "literal"
+		"varType": "cisab"
 	},
 	"tableInvalidIn": {
 		"name": "table",
@@ -914,21 +918,18 @@
 		"name": "var",
 		"scope": "global",
 		"value": "10",
-		"varType": "basic",
-		"basicType": "literal"
+		"varType": "basic"
 	},
 	"basicTableListGt": {
 		"name": "var",
 		"scope": "global",
 		"value": "0",
-		"varType": "basic",
-		"basicType": "literal"
+		"varType": "basic"
 	},
 	"basicTableListGt2": {
 		"name": "var2",
 		"scope": "global",
 		"value": "10",
-		"varType": "basic",
-		"basicType": "literal"
+		"varType": "basic"
 	}
 }
