@@ -133,11 +133,11 @@ export interface Vars {
  * Mapping of variable path to its dependents
  */
 export interface Deps {
-    [key: string]: string[];
+    [key: string]: Set<string>;
 }
 
 export interface Cache {
-	[path: string]: Literal
+	[path: string]: Literal | TableData
 }
 
 export interface Changed {
@@ -205,7 +205,6 @@ const comparisons = {
 /**
  * Creates a new UserVars object for holding user defined dynamic variables
  * @class
- * @property {string[]} scopes  - List of scopes currently in use
  * @property {Vars}     vars    - Variable mapping, {name: value}, scoped vars are nested into scope name
  * @property {Parser}   parser  - Parser for expressions
  * @property {Cache}    cache   - Resolved values of variables
@@ -213,7 +212,6 @@ const comparisons = {
  * @property {Changed}  changed - Record of which variables need to be re-evaluated
  */
 export class UserVars {
-    scopes: string[];
     vars: Vars;
 	parser: Parser;
 	cache: Cache;
@@ -224,7 +222,6 @@ export class UserVars {
      * Creates a new UserVars object for holding user defined dynamic variables
      */
     constructor() {
-        this.scopes = [];
         this.vars = {};
 		this.cache = {};
 		this.deps = {};
@@ -239,26 +236,23 @@ export class UserVars {
      * @param {boolean} [overwrite=true] - True if existing global variables with conflicting name should be overwritten
      * @returns {boolean} True if scope was added or already existed
      */
-    #addScope(scope: string, overwrite: boolean = true): boolean {
-        // scope is not in this.scopes
-        if (this.scopes.indexOf(scope) === -1) {
-            // there is nothing at this.vars[scope]
-            // or
-            // this.vars[scope] is a Var, not a Scope, and should be overwritten
-            if (
-                !this.vars[scope] ||
-                (overwrite && "varType" in this.vars[scope])
-            ) {
-                this.scopes.push(scope);
-                this.vars[scope] = {};
-                this.vars[scope] = {};
+    #addScope(scope: string, overwrite: boolean = false): boolean {
+        if (
+            !this.vars[scope] ||
+            (overwrite && isVar(this.vars[scope]))
+        ) {
+			// there is nothing at this.vars[scope]
+			// or
+			// this.vars[scope] is a Var, not a Scope, and should be overwritten
+			this.vars[scope] = {};
 
-                return true;
-            }
-        } else {
-            // scope already exists
-            return true;
-        }
+			return true;
+		}
+
+		if (this.vars[scope] && !overwrite && !isVar(this.vars[scope])) {
+			// scope exists as scope
+			return true;
+		}
 
         // there is a global variable with the same name as scope, but cannot overwrite it
         return false;
@@ -267,11 +261,11 @@ export class UserVars {
     /**
      * Adds the passed variable to Vars, and the evaluated value to vars.
      * This is done automatically with the build methods
-     * @param {Var}  value                - Variable to add to the list
-     * @param {boolean} [overwrite=false] - True if existing variable with conflicting name or scope should be overwritten
+     * @param {Var}     value                  - Variable to add to the list
+	 * @param {boolean} [forceOverwrite=false] - Whether scopes and global variables with the same names can overwrite eachother
      * @returns {boolean} True if variable was set
      */
-    setVar(value: Var, overwrite: boolean = false): boolean {
+    setVar(value: Var, forceOverwrite: boolean = false): boolean {
 		const pattern = /[A-Z\d_]+/gi
 		const nameMatch = value.name.match(pattern);
 		const scopeMatch = value.scope.match(pattern);
@@ -286,17 +280,31 @@ export class UserVars {
 
         // variable goes to root
         if (value.scope === "global") {
-            if (!this.vars[value.name] || overwrite) {
+            if (!this.vars[value.name] || isVar(this.vars[value.name])) {
                 this.vars[value.name] = {...value};
+
+				this.#setChanged(this.getPath(value.name, value.scope));
+
                 return true;
             }
+
+			if (forceOverwrite) {
+				this.vars[value.name] = {...value};
+
+				this.#setChanged(this.getPath(value.name, value.scope));
+
+				return true;
+			}
 
             return false;
         } else { // variable goes to a scope
             // successfully added or already existed
-            if (this.#addScope(value.scope, overwrite)) {
-				if (!(<Scope>this.vars[value.scope])[value.name] || overwrite) {
+            if (this.#addScope(value.scope, forceOverwrite)) {
+				if (!(<Scope>this.vars[value.scope])[value.name]) {
 					(<Scope>this.vars[value.scope])[value.name] = {...value};
+
+					this.#setChanged(this.getPath(value.name, value.scope));
+
 					return true;
 				}
 
@@ -310,14 +318,14 @@ export class UserVars {
 
 	/**
 	 * Helper function for setting multiple variables at once
-	 * @param {Var[]} values - Array of variable data to pass to setVar
+	 * @param {Var[]}   values - Array of variable data to pass to setVar
 	 * @returns {boolean[]} Array of boolean representing whether each variable was added
 	 */
 	setVarBulk(...values: Var[]): boolean[] {
 		const output: boolean[] = [];
 
 		for (let i of values) {
-			output.push(this.setVar(i));
+			output.push(this.setVar(i, false));
 		}
 
 		return output;
@@ -335,9 +343,14 @@ export class UserVars {
 		
 		const thisPath = this.getPath(value.name, value.scope);
 
-		if (!this.deps[thisPath]) this.deps[thisPath] = [];
+		if (!this.deps[thisPath]) this.deps[thisPath] = new Set();
 
-		this.deps[thisPath].push(...parents);
+		for (let i of parents) {
+			if (!this.deps[thisPath].has(i)) {
+				this.deps[thisPath].add(i);
+			}
+		}
+
 		parents = [...parents, thisPath];
 
         if (recursed && origin === thisPath) {
@@ -670,18 +683,18 @@ export class UserVars {
         }
     }
 
-	/**
-	 * 
-	 * @param {string} path - 
-	 * @returns 
-	 */
-    getVarAbstract(path: string): Var {
+    /**
+     * Gets a Var from a string path
+     * @param {string} path - The path to the variable
+     * @returns {Var} The Var found at scope.name
+     */
+    getRawVar(path: string): Var {
 		const result = get(this.vars, this.normalizePath(path), null);
 
 		if (isVar(result)) {
 			return result;
 		} else if (result) {
-			throw new TypeError(`Variable ${path} is malformed`);
+			throw new TypeError(`Variable ${path} is malformed (is it a scope?)`);
 		}
 
 		throw new ReferenceError(`Variable ${path} not found`);
@@ -689,35 +702,36 @@ export class UserVars {
 
     /**
      * Gets a Var from a string path
-     * @param {string} path - The path to the variable
-     * @returns {Var} The Var found at scope.name
-     */
-    getRawVar(path: string): Var {
-        return this.getVarAbstract(path);
-    }
-
-    /**
-     * Gets a Var from a string path
-     * @param {string} path  - The path to the variable
+     * @param {string}  path - The path to the variable
 	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
      * @returns {Var} The Var found at the path
      */
 	getVar(path: string, full?: boolean): Literal | TableData {
-		const variable = this.getVarAbstract(path);
+		const variable = this.getRawVar(path);
 
 		if (full && variable.varType === "table") {
 			if (!this.changed[`${path}-full`] && this.cache[`${path}-full`]) {
 				return this.cache[`${path}-full`];
 			}
 
-			return this.#evaluateFull(<TableVar> variable);
+			const value = this.#evaluateFull(<TableVar> variable);
+			
+			this.cache[`${path}-full`] = value;
+			this.changed[`${path}-full`] = false;
+
+			return value;
 		}
 
 		if (!this.changed[path] && this.cache[path]) {
 			return this.cache[path];
 		}
 
-		return this.#evaluate(variable, undefined, false);
+		const value = this.#evaluate(variable, undefined, false);
+
+		this.cache[path] = value;
+		this.changed[path] = false;
+
+		return value;
 	}
 
     /**
@@ -766,14 +780,28 @@ export class UserVars {
 
 		try {
 			const path = this.normalizePath(ref, scope);
+			const value = this.#evaluate(this.getRawVar(path), origin, true, parents);
 
-			return this.#evaluate(this.getRawVar(path), origin, true, parents);
+			this.cache[path] = value;
+			this.changed[path] = false;
+
+			return value;
 		} catch (err) {
 			if (err instanceof ReferenceError) {
-				return("[MISSING REFERENCE]");
+				return "[MISSING REFERENCE]";
 			} else {
 				throw err;
 			}
+		}
+	}
+
+	#setChanged(path: string) {
+		this.changed[path] = true;
+
+		if (!this.deps[path]) return;
+
+		for (let i of this.deps[path]) {
+			this.#setChanged(i);
 		}
 	}
 }
