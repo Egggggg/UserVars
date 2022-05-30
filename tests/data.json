@@ -1,0 +1,927 @@
+{
+	"basicGlobalLiteral": {
+		"name": "nice",
+		"scope": "global",
+		"value": "cool",
+		"varType": "basic"
+	},
+	"basicGlobalLiteral2": {
+		"name": "nice",
+		"scope": "global",
+		"value": "epic",
+		"varType": "basic"
+	},
+	"basicGlobalVar": {
+		"name": "niceVar",
+		"scope": "global",
+		"value": {
+			"value": "nice",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicGlobalVar2": {
+		"name": "niceVar2",
+		"scope": "global",
+		"value": {
+			"value": "niceVar",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicScopedLiteral": {
+		"name": "nice",
+		"scope": "scope1",
+		"value": "epic",
+		"varType": "basic"
+	},
+	"basicScopedLiteral2": {
+		"name": "nice",
+		"scope": "scope1",
+		"value": "impossible",
+		"varType": "basic"
+	},
+	"basicScopedVar": {
+		"name": "niceVar",
+		"scope": "scope1",
+		"value": {
+			"value": "nice",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicCircular": {
+		"name": "var",
+		"scope": "global",
+		"value": {
+			"value": "var",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicCircular1": {
+		"name": "var1",
+		"scope": "global",
+		"value": {
+			"value": "var2",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicCircular2": {
+		"name": "var2",
+		"scope": "global",
+		"value": {
+			"value": "var3",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicCircular3": {
+		"name": "var3",
+		"scope": "global",
+		"value": {
+			"value": "var4",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicCircular4": {
+		"name": "var4",
+		"scope": "global",
+		"value": {
+			"value": "var1",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"basicScopeNice": {
+		"name": "cool",
+		"scope": "nice",
+		"value": "yeah !",
+		"varType": "basic"
+	},
+	"listLiteral": {
+		"name": "list",
+		"scope": "global",
+		"value": ["nice", "nice2", "nice3", "nice4", "cool (nice)"],
+		"varType": "list"
+	},
+	"listMixed": {
+		"name": "list",
+		"scope": "global",
+		"value": [
+			"nice",
+			{
+				"value": "nice",
+				"reference": true
+			},
+			{
+				"value": "scope1.nice",
+				"reference": true
+			},
+			"yes"
+		],
+		"varType": "list"
+	},
+	"basicChaosScope": {
+		"name": "nice",
+		"scope": "chaos",
+		"value": "chaos city",
+		"varType": "basic"
+	},
+	"listRefScoped": {
+		"name": "list",
+		"scope": "chaos",
+		"value": [
+			{
+				"value": "../nice",
+				"reference": true
+			},
+			{
+				"value": "../scope1.nice",
+				"reference": true
+			},
+			{
+				"value": "nice",
+				"reference": true
+			}
+		],
+		"varType": "list"
+	},
+	"listCircular": {
+		"name": "list",
+		"scope": "global",
+		"value": [
+			"nice",
+			"nice cool",
+			{
+				"value": "var2",
+				"reference": true
+			},
+			"nice yeah cool and good"
+		],
+		"varType": "list"
+	},
+	"basicListCircular": {
+		"name": "var2",
+		"scope": "global",
+		"value": {
+			"value": "list",
+			"reference": true
+		},
+		"varType": "basic"
+	},
+	"listMissingRef": {
+		"name": "list2",
+		"scope": "global",
+		"value": [
+			{
+				"value": "no",
+				"reference": true
+			}
+		],
+		"varType": "list"
+	},
+	"listRefList": {
+		"name": "list2",
+		"scope": "global",
+		"value": [
+			"cool and good",
+			{
+				"value": "list",
+				"reference": true
+			},
+			"very cool"
+		],
+		"varType": "list"
+	},
+	"tableLiteral": {
+		"name": "literal",
+		"scope": "global",
+		"value": [
+			{
+				"output": "me!",
+				"conditions": [
+					{
+						"val1": "1",
+						"comparison": "eq",
+						"val2": "1"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"tableMulti": {
+		"name": "table",
+		"scope": "global",
+		"value": [
+			{
+				"output": "eq",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "eq",
+						"val2": "34"
+					}
+				]
+			},
+			{
+				"output": "lt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "lt",
+						"val2": "34"
+					}
+				]
+			},
+			{
+				"output": "gt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "gt",
+						"val2": "34"
+					}
+				]
+			},
+			{
+				"output": "in",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "in",
+						"val2": {
+							"value": "listOfWords",
+							"reference": true
+						}
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "default"
+	},
+	"basicTableEq": {
+		"name": "var",
+		"scope": "global",
+		"value": "34",
+		"varType": "basic"
+	},
+	"basicTableLt": {
+		"name": "var",
+		"scope": "global",
+		"value": "0",
+		"varType": "basic"
+	},
+	"basicTableGt": {
+		"name": "var",
+		"scope": "global",
+		"value": "100",
+		"varType": "basic"
+	},
+	"basicTableIn": {
+		"name": "var",
+		"scope": "global",
+		"value": "words",
+		"varType": "basic"
+	},
+	"listTableWords": {
+		"name": "listOfWords",
+		"scope": "global",
+		"value": ["cool", "words", "are", "good"],
+		"varType": "list"
+	},
+	"tableFirst": {
+		"name": "first",
+		"scope": "global",
+		"value": [
+			{
+				"output": "no way",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			},
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"tableLast": {
+		"name": "last",
+		"scope": "global",
+		"value": [
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no way",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "last",
+		"default": "shouldn't"
+	},
+	"tableLastToFirst": {
+		"name": "first",
+		"scope": "global",
+		"value": [
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "cool",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "last",
+		"default": "shouldn't"
+	},
+	"fullTableFirstOutput": {
+		"output": "yes",
+		"outIndex": 1,
+		"value": [
+			{
+				"output": "no way",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			},
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"default": "shouldn't",
+		"priority": "first"
+	},
+	"fullTableLastOutput": {
+		"output": "yes",
+		"outIndex": 1,
+		"value": [
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no way",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			}
+		],
+		"default": "shouldn't",
+		"priority": "last"
+	},
+	"tableRefFirst": {
+		"name": "ref",
+		"scope": "global",
+		"value": [
+			{
+				"output": {
+					"value": "nice",
+					"reference": true
+				},
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"tableRefLast": {
+		"name": "ref",
+		"scope": "global",
+		"value": [
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": {
+					"value": "nice",
+					"reference": true
+				},
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "last",
+		"default": "shouldn't"
+	},
+	"tableRefDefault": {
+		"name": "ref",
+		"scope": "global",
+		"value": [
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": {
+			"value": "nice",
+			"reference": true
+		}
+	},
+	"expressionLiteral": {
+		"name": "var",
+		"scope": "global",
+		"value": "4 * x",
+		"varType": "expression",
+		"vars": {
+			"x": "15"
+		}
+	},
+	"basicExpression": {
+		"name": "var",
+		"scope": "global",
+		"value": "30",
+		"varType": "basic"
+	},
+	"expressionReference": {
+		"name": "expression",
+		"scope": "global",
+		"value": "4 * x",
+		"varType": "expression",
+		"vars": {
+			"x": {
+				"value": "var",
+				"reference": true
+			}
+		}
+	},
+	"tableExpression": {
+		"name": "var",
+		"scope": "global",
+		"value": [
+			{
+				"output": "45",
+				"conditions": [
+					{
+						"val1": "1",
+						"comparison": "eq",
+						"val2": "1"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"expressionFunction": {
+		"name": "expression",
+		"scope": "global",
+		"value": "f(x) + 15",
+		"varType": "expression",
+		"functions": [
+			{
+				"value": "math.function",
+				"reference": true
+			}
+		],
+		"vars": {
+			"x": {
+				"value": "var",
+				"reference": true
+			}
+		}
+	},
+	"basicFunction": {
+		"name": "function",
+		"scope": "math",
+		"value": "f(x) = 4 * x",
+		"varType": "basic"
+	},
+	"expressionFunctionList": {
+		"name": "expression",
+		"scope": "global",
+		"value": "a(x) + b(x) + c(x)",
+		"varType": "expression",
+		"functions": [
+			"c(x) = 5 * x",
+			{
+				"value": "math.functions",
+				"reference": true
+			}
+		],
+		"vars": {
+			"x": {
+				"value": "var",
+				"reference": true
+			}
+		}
+	},
+	"listFunctions": {
+		"name": "functions",
+		"scope": "math",
+		"value": ["a(x) = 3 * x", "b(x) = 4 * x"],
+		"varType": "list"
+	},
+	"expressionRefValue": {
+		"name": "expression",
+		"scope": "global",
+		"value": {
+			"value": "math.expression1",
+			"reference": true
+		},
+		"varType": "expression",
+		"vars": {
+			"x": "15"
+		}
+	},
+	"basicExpressionReferenced": {
+		"name": "expression1",
+		"scope": "math",
+		"value": "4 * x",
+		"varType": "basic"
+	},
+	"listExpressionReferenced": {
+		"name": "expression1",
+		"scope": "math",
+		"value": ["4 * x", "x + 12", "5 / x", "1 - x"],
+		"varType": "list"
+	},
+	"expressionMissingFunc": {
+		"name": "expression",
+		"scope": "global",
+		"value": "f(x)",
+		"varType": "expression",
+		"functions": [
+			{
+				"value": "no",
+				"reference": true
+			}
+		],
+		"vars": {
+			"x": "15"
+		}
+	},
+	"invalid": {
+		"name": "var",
+		"scope": "global",
+		"value": "nice",
+		"varType": "cisab"
+	},
+	"tableInvalidIn": {
+		"name": "table",
+		"scope": "global",
+		"value": [
+			{
+				"output": "how",
+				"conditions": [
+					{
+						"val1": "cool",
+						"comparison": "in",
+						"val2": {
+							"value": "list",
+							"reference": true
+						}
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "default"
+	},
+	"tableFullRefs": {
+		"name": "table",
+		"scope": "global",
+		"value": [
+			{
+				"output": {
+					"value": "nice",
+					"reference": true
+				},
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": {
+			"value": "nice",
+			"reference": true
+		}
+	},
+	"fullTableRefOutput": {
+		"output": "cool",
+		"outIndex": -1,
+		"value": [
+			{
+				"output": "cool",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "cool"
+					}
+				]
+			}
+		],
+		"default": "cool",
+		"priority": "first"
+	},
+	"listRefScope": {
+		"name": "list",
+		"scope": "global",
+		"value": [
+			{
+				"value": "scope1",
+				"reference": true
+			}
+		],
+		"varType": "list"
+	},
+	"basicTable": {
+		"name": "var",
+		"scope": "global",
+		"value": "nice",
+		"varType": "table"
+	},
+	"tableCompareLists": {
+		"name": "table",
+		"scope": "global",
+		"value": [
+			{
+				"output": "eq",
+				"conditions": [
+					{
+						"val1": {
+							"value": "list",
+							"reference": true
+						},
+						"comparison": "eq",
+						"val2": {
+							"value": "list2",
+							"reference": true
+						}
+					}
+				]
+			},
+			{
+				"output": "lt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "list",
+							"reference": true
+						},
+						"comparison": "lt",
+						"val2": {
+							"value": "var",
+							"reference": true
+						}
+					}
+				]
+			},
+			{
+				"output": "gt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "list",
+							"reference": true
+						},
+						"comparison": "gt",
+						"val2": {
+							"value": "var",
+							"reference": true
+						}
+					}
+				]
+			},
+			{
+				"output": "gt2",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var2",
+							"reference": true
+						},
+						"comparison": "gt",
+						"val2": {
+							"value": "list",
+							"reference": true
+						}
+					}
+				]
+			},
+			{
+				"output": "in",
+				"conditions": [
+					{
+						"val1": {
+							"value": "sublist",
+							"reference": true
+						},
+						"comparison": "in",
+						"val2": {
+							"value": "list",
+							"reference": true
+						}
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"default": "default",
+		"priority": "first"
+	},
+	"listCompare2": {
+		"name": "list2",
+		"scope": "global",
+		"value": [
+			{
+				"value": "list",
+				"reference": true
+			}
+		],
+		"varType": "list"
+	},
+	"listSublist": {
+		"name": "sublist",
+		"scope": "global",
+		"value": ["nice", "nice3"],
+		"varType": "list"
+	},
+	"basicTableListLt": {
+		"name": "var",
+		"scope": "global",
+		"value": "10",
+		"varType": "basic"
+	},
+	"basicTableListGt": {
+		"name": "var",
+		"scope": "global",
+		"value": "0",
+		"varType": "basic"
+	},
+	"basicTableListGt2": {
+		"name": "var2",
+		"scope": "global",
+		"value": "10",
+		"varType": "basic"
+	}
+}

@@ -1,33 +1,44 @@
 {
-  "devDependencies": {
-    "@types/jest": "^27.4.1",
-    "@types/lodash": "^4.14.179",
-    "jest": "^27.5.1",
-    "ts-jest": "^27.1.3",
-    "typescript": "^4.6.2"
-  },
-  "name": "uservars",
-  "version": "1.0.0",
-  "description": "Module for letting users create variables",
-  "main": "index.ts",
-  "types": "index.d.ts",
-  "scripts": {
-    "test": "jest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Egggggg/UserVars.git"
-  },
-  "keywords": [
-    "user-variables"
-  ],
-  "author": "Bee Clark",
-  "license": "GPL-3.0-or-later",
-  "bugs": {
-    "url": "https://github.com/Egggggg/UserVars/issues"
-  },
-  "homepage": "https://github.com/Egggggg/UserVars#readme",
-  "dependencies": {
-    "lodash": "^4.17.21"
-  }
+	"devDependencies": {
+		"@types/jest": "^27.4.1",
+		"@types/lodash": "^4.14.179",
+		"jest": "^27.5.1",
+		"prettier": "^2.6.0",
+		"ts-jest": "^27.1.3",
+		"typescript": "^4.6.4"
+	},
+	"name": "uservars",
+	"version": "1.0.0",
+	"description": "Enables end users to create variables",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"test": "jest tests/user-vars.test.ts"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Egggggg/UserVars.git"
+	},
+	"keywords": [
+		"user-variables",
+		"user",
+		"variables",
+		"vars",
+		"uservars"
+	],
+	"author": "Bee Clark",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/Egggggg/UserVars/issues"
+	},
+	"homepage": "https://github.com/Egggggg/UserVars#readme",
+	"dependencies": {
+		"expr-eval": "^2.0.2",
+		"lodash": "^4.17.21"
+	},
+	"files": [
+		"dist/",
+		"README.md",
+		"LICENSE"
+	]
 }
