@@ -14,7 +14,7 @@ $ npm install uservars
 
 ## Usage
 
-Examples can be found in [this file](./examples.ts). 
+Examples can be found in [this file](https://github.com/Egggggg/UserVars/blob/main/examples.js). 
 
 - Examples for literal variables start from the top.
 - Examples for references start with `basicLiteral`.
