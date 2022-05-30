@@ -54,12 +54,6 @@ describe("getVar", () => {
 			expect(userVars.getVar("nice")).toBe("epic");
 		});
 
-		test("Overwrite not allowed", () => {
-			userVars.setVarBulk(data.basicGlobalLiteral, data.basicGlobalLiteral2);
-
-			expect(userVars.getVar("nice")).toBe("cool");
-		});
-
 		test("Scoped overwrite not allowed", () => {
 			userVars.setVarBulk(data.basicScopedLiteral, data.basicScopedLiteral2);
 

@@ -29,7 +29,7 @@ export interface BasicVar extends Var {
  */
 export interface Reference {
 	value: string;
-	varType: string;
+	reference: true;
 }
 
 /**
@@ -266,16 +266,16 @@ export class UserVars {
      * @returns {boolean} True if variable was set
      */
     setVar(value: Var, forceOverwrite: boolean = false): boolean {
-		const pattern = /[A-Z\d_]+/gi
-		const nameMatch = value.name.match(pattern);
-		const scopeMatch = value.scope.match(pattern);
+		const pattern = /^[A-Z\d_]+$/i;
+		const nameMatch = pattern.test(value.name);
+		const scopeMatch = pattern.test(value.scope);
 
-		if (!nameMatch || nameMatch[0] !== value.name) {
-			throw `Name must match pattern /[A-Z_]+/gi exactly (${value.scope}.${value.name})`;
+		if (!nameMatch) {
+			throw `Name must match pattern /^[A-Z\\d_]+$/i exactly (${value.scope}.${value.name})`;
 		}
 
-		if (!scopeMatch || scopeMatch[0] !== value.scope) {
-			throw `Scope must match pattern /[A-Z_]+/gi exactly (${value.scope}.${value.name})`;
+		if (!scopeMatch) {
+			throw `Scope must match pattern /^[A-Z\\d_]+$/i exactly (${value.scope}.${value.name})`;
 		}
 
         // variable goes to root
@@ -358,8 +358,8 @@ export class UserVars {
         }
 
         if (value.varType === "basic") {
-			if (typeof value.value !== "string" && !("varType" in value.value)) {
-				throw new TypeError(`Basic variable value must be of type string (${value.scope}.${value.name})`);
+			if (typeof value.value !== "string" && !("reference" in value.value)) {
+				throw new TypeError(`Basic variable value must be of type string | Reference (${value.scope}.${value.name})`);
 			}
 
             const basic = value as BasicVar;
@@ -398,11 +398,11 @@ export class UserVars {
 			return output;
 		} else if (value.varType === "table") {
 			if (!("priority" in value) || !["first", "last"].includes((<TableVar>value).priority)) throw new TypeError(`Table "variable" priority field must be either "first" or "last" (${value.scope}.${value.name}))`);
-			if (!("default" in value) || (!(typeof (<TableVar>value).default === "string") && !("varType" in <Reference>(<TableVar>value).default))) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
+			if (!("default" in value) || (!(typeof (<TableVar>value).default === "string") && !("reference" in <Reference>(<TableVar>value).default))) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
 			if (
 				!(value.value instanceof Array) 
 				|| (<Array<string | Value | TableRow>>value.value).filter((i) => {
-					typeof i === "string" || "varType" in i
+					typeof i === "string" || "reference" in i
 				}).length > 0) throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
 
 			const table = value as TableVar;
@@ -458,7 +458,7 @@ export class UserVars {
 			if (
 				!("vars" in value) || 
 					Object.keys((<ExpressionVar>value).vars).filter((i) => {
-						typeof i !== "string" && !("varType" in i)
+						typeof i !== "string" && !("reference" in i)
 					}).length > 0
 			) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
 
@@ -466,7 +466,7 @@ export class UserVars {
 				"functions" in value && (
 					!((<ExpressionVar>value).functions instanceof Array) ||
 					(<Value[]>(<ExpressionVar>value).functions).filter((i) => {
-						typeof i !== "string" && !("varType" in i)
+						typeof i !== "string" && !("reference" in i)
 					}).length > 0)
 			) throw new TypeError(`Expression "functions" field must be of type Value[] (${value.scope}.${value.name})`);
 

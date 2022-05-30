@@ -1,184 +1,184 @@
 {
-    "basicGlobalLiteral": {
-        "name": "nice",
-        "scope": "global",
-        "value": "cool",
-        "varType": "basic"
-    },
-    "basicGlobalLiteral2": {
-        "name": "nice",
-        "scope": "global",
-        "value": "epic",
-        "varType": "basic"
-    },
-    "basicGlobalVar": {
-        "name": "niceVar",
-        "scope": "global",
-        "value": {
+	"basicGlobalLiteral": {
+		"name": "nice",
+		"scope": "global",
+		"value": "cool",
+		"varType": "basic"
+	},
+	"basicGlobalLiteral2": {
+		"name": "nice",
+		"scope": "global",
+		"value": "epic",
+		"varType": "basic"
+	},
+	"basicGlobalVar": {
+		"name": "niceVar",
+		"scope": "global",
+		"value": {
 			"value": "nice",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicGlobalVar2": {
-        "name": "niceVar2",
-        "scope": "global",
-        "value": {
+		"varType": "basic"
+	},
+	"basicGlobalVar2": {
+		"name": "niceVar2",
+		"scope": "global",
+		"value": {
 			"value": "niceVar",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicScopedLiteral": {
-        "name": "nice",
-        "scope": "scope1",
-        "value": "epic",
-        "varType": "basic"
-    },
+		"varType": "basic"
+	},
+	"basicScopedLiteral": {
+		"name": "nice",
+		"scope": "scope1",
+		"value": "epic",
+		"varType": "basic"
+	},
 	"basicScopedLiteral2": {
 		"name": "nice",
 		"scope": "scope1",
 		"value": "impossible",
 		"varType": "basic"
 	},
-    "basicScopedVar": {
-        "name": "niceVar",
-        "scope": "scope1",
-        "value": {
+	"basicScopedVar": {
+		"name": "niceVar",
+		"scope": "scope1",
+		"value": {
 			"value": "nice",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicCircular": {
-        "name": "var",
-        "scope": "global",
-        "value": {
+		"varType": "basic"
+	},
+	"basicCircular": {
+		"name": "var",
+		"scope": "global",
+		"value": {
 			"value": "var",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicCircular1": {
-        "name": "var1",
-        "scope": "global",
-        "value": {
+		"varType": "basic"
+	},
+	"basicCircular1": {
+		"name": "var1",
+		"scope": "global",
+		"value": {
 			"value": "var2",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicCircular2": {
-        "name": "var2",
-        "scope": "global",
-        "value": {
+		"varType": "basic"
+	},
+	"basicCircular2": {
+		"name": "var2",
+		"scope": "global",
+		"value": {
 			"value": "var3",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicCircular3": {
-        "name": "var3",
-        "scope": "global",
-        "value": {
+		"varType": "basic"
+	},
+	"basicCircular3": {
+		"name": "var3",
+		"scope": "global",
+		"value": {
 			"value": "var4",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
-    "basicCircular4": {
-        "name": "var4",
-        "scope": "global",
-        "value": {
+		"varType": "basic"
+	},
+	"basicCircular4": {
+		"name": "var4",
+		"scope": "global",
+		"value": {
 			"value": "var1",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
+		"varType": "basic"
+	},
 	"basicScopeNice": {
 		"name": "cool",
 		"scope": "nice",
 		"value": "yeah !",
 		"varType": "basic"
 	},
-    "listLiteral": {
-        "name": "list",
-        "scope": "global",
-        "value": ["nice", "nice2", "nice3", "nice4", "cool (nice)"],
-        "varType": "list"
-    },
-    "listMixed": {
-        "name": "list",
-        "scope": "global",
-        "value": [
-            "nice",
-            {
-                "value": "nice",
-                "varType": "reference"
-            },
-            {
-                "value": "scope1.nice",
-                "varType": "reference"
-            },
-            "yes"
-        ],
-        "varType": "list"
-    },
-    "basicChaosScope": {
-        "name": "nice",
-        "scope": "chaos",
-        "value": "chaos city",
-        "varType": "basic"
-    },
-    "listRefScoped": {
-        "name": "list",
-        "scope": "chaos",
-        "value": [
-            {
-                "value": "../nice",
-                "varType": "reference"
-            },
-            {
-                "value": "../scope1.nice",
-                "varType": "reference"
-            },
-            {
-                "value": "nice",
-                "varType": "reference"
-            }
-        ],
-        "varType": "list"
-    },
-    "listCircular": {
-        "name": "list",
-        "scope": "global",
-        "value": [
-            "nice",
-            "nice cool",
-            {
-                "value": "var2",
-                "varType": "reference"
-            },
-            "nice yeah cool and good"
-        ],
-        "varType": "list"
-    },
-    "basicListCircular": {
-        "name": "var2",
-        "scope": "global",
-        "value": {
+	"listLiteral": {
+		"name": "list",
+		"scope": "global",
+		"value": ["nice", "nice2", "nice3", "nice4", "cool (nice)"],
+		"varType": "list"
+	},
+	"listMixed": {
+		"name": "list",
+		"scope": "global",
+		"value": [
+			"nice",
+			{
+				"value": "nice",
+				"reference": true
+			},
+			{
+				"value": "scope1.nice",
+				"reference": true
+			},
+			"yes"
+		],
+		"varType": "list"
+	},
+	"basicChaosScope": {
+		"name": "nice",
+		"scope": "chaos",
+		"value": "chaos city",
+		"varType": "basic"
+	},
+	"listRefScoped": {
+		"name": "list",
+		"scope": "chaos",
+		"value": [
+			{
+				"value": "../nice",
+				"reference": true
+			},
+			{
+				"value": "../scope1.nice",
+				"reference": true
+			},
+			{
+				"value": "nice",
+				"reference": true
+			}
+		],
+		"varType": "list"
+	},
+	"listCircular": {
+		"name": "list",
+		"scope": "global",
+		"value": [
+			"nice",
+			"nice cool",
+			{
+				"value": "var2",
+				"reference": true
+			},
+			"nice yeah cool and good"
+		],
+		"varType": "list"
+	},
+	"basicListCircular": {
+		"name": "var2",
+		"scope": "global",
+		"value": {
 			"value": "list",
-			"varType": "reference"
+			"reference": true
 		},
-        "varType": "basic"
-    },
+		"varType": "basic"
+	},
 	"listMissingRef": {
 		"name": "list2",
 		"scope": "global",
 		"value": [
 			{
 				"value": "no",
-				"varType": "reference"
+				"reference": true
 			}
 		],
 		"varType": "list"
@@ -190,129 +190,129 @@
 			"cool and good",
 			{
 				"value": "list",
-				"varType": "reference"
+				"reference": true
 			},
 			"very cool"
 		],
 		"varType": "list"
 	},
-    "tableLiteral": {
-        "name": "literal",
-        "scope": "global",
-        "value": [
-            {
-                "output": "me!",
-                "conditions": [
-                    {
-                        "val1": "1",
-                        "comparison": "eq",
-                        "val2": "1"
-                    }
-                ]
-            }
-        ],
-        "varType": "table",
-        "priority": "first",
-        "default": "shouldn't"
-    },
-    "tableMulti": {
-        "name": "table",
-        "scope": "global",
-        "value": [
-            {
-                "output": "eq",
-                "conditions": [
-                    {
-                        "val1": {
-                            "value": "var",
-                            "varType": "reference"
-                        },
-                        "comparison": "eq",
-                        "val2": "34"
-                    }
-                ]
-            },
-            {
-                "output": "lt",
-                "conditions": [
-                    {
-                        "val1": {
-                            "value": "var",
-                            "varType": "reference"
-                        },
-                        "comparison": "lt",
-                        "val2": "34"
-                    }
-                ]
-            },
-            {
-                "output": "gt",
-                "conditions": [
-                    {
-                        "val1": {
-                            "value": "var",
-                            "varType": "reference"
-                        },
-                        "comparison": "gt",
-                        "val2": "34"
-                    }
-                ]
-            },
-            {
-                "output": "in",
-                "conditions": [
-                    {
-                        "val1": {
-                            "value": "var",
-                            "varType": "reference"
-                        },
-                        "comparison": "in",
-                        "val2": {
-                            "value": "listOfWords",
-                            "varType": "reference"
-                        }
-                    }
-                ]
-            }
-        ],
-        "varType": "table",
-        "priority": "first",
-        "default": "default"
-    },
-    "basicTableEq": {
-        "name": "var",
-        "scope": "global",
-        "value": "34",
-        "varType": "basic"
-    },
-    "basicTableLt": {
-        "name": "var",
-        "scope": "global",
-        "value": "0",
-        "varType": "basic"
-    },
-    "basicTableGt": {
-        "name": "var",
-        "scope": "global",
-        "value": "100",
-        "varType": "basic"
-    },
-    "basicTableIn": {
-        "name": "var",
-        "scope": "global",
-        "value": "words",
-        "varType": "basic"
-    },
-    "listTableWords": {
-        "name": "listOfWords",
-        "scope": "global",
-        "value": ["cool", "words", "are", "good"],
-        "varType": "list"
-    },
-    "tableFirst": {
-        "name": "first",
-        "scope": "global",
-        "value": [
+	"tableLiteral": {
+		"name": "literal",
+		"scope": "global",
+		"value": [
+			{
+				"output": "me!",
+				"conditions": [
+					{
+						"val1": "1",
+						"comparison": "eq",
+						"val2": "1"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"tableMulti": {
+		"name": "table",
+		"scope": "global",
+		"value": [
+			{
+				"output": "eq",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "eq",
+						"val2": "34"
+					}
+				]
+			},
+			{
+				"output": "lt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "lt",
+						"val2": "34"
+					}
+				]
+			},
+			{
+				"output": "gt",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "gt",
+						"val2": "34"
+					}
+				]
+			},
+			{
+				"output": "in",
+				"conditions": [
+					{
+						"val1": {
+							"value": "var",
+							"reference": true
+						},
+						"comparison": "in",
+						"val2": {
+							"value": "listOfWords",
+							"reference": true
+						}
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "default"
+	},
+	"basicTableEq": {
+		"name": "var",
+		"scope": "global",
+		"value": "34",
+		"varType": "basic"
+	},
+	"basicTableLt": {
+		"name": "var",
+		"scope": "global",
+		"value": "0",
+		"varType": "basic"
+	},
+	"basicTableGt": {
+		"name": "var",
+		"scope": "global",
+		"value": "100",
+		"varType": "basic"
+	},
+	"basicTableIn": {
+		"name": "var",
+		"scope": "global",
+		"value": "words",
+		"varType": "basic"
+	},
+	"listTableWords": {
+		"name": "listOfWords",
+		"scope": "global",
+		"value": ["cool", "words", "are", "good"],
+		"varType": "list"
+	},
+	"tableFirst": {
+		"name": "first",
+		"scope": "global",
+		"value": [
 			{
 				"output": "no way",
 				"conditions": [
@@ -323,55 +323,55 @@
 					}
 				]
 			},
-            {
-                "output": "yes",
-                "conditions": [
-                    {
-                        "val1": "nice",
-                        "comparison": "eq",
-                        "val2": "nice"
-                    }
-                ]
-            },
-            {
-                "output": "no",
-                "conditions": [
-                    {
-                        "val1": "nice",
-                        "comparison": "eq",
-                        "val2": "nice"
-                    }
-                ]
-            }
-        ],
-        "varType": "table",
-        "priority": "first",
-        "default": "shouldn't"
-    },
-    "tableLast": {
-        "name": "last",
-        "scope": "global",
-        "value": [
-            {
-                "output": "no",
-                "conditions": [
-                    {
-                        "val1": "nice",
-                        "comparison": "eq",
-                        "val2": "nice"
-                    }
-                ]
-            },
-            {
-                "output": "yes",
-                "conditions": [
-                    {
-                        "val1": "nice",
-                        "comparison": "eq",
-                        "val2": "nice"
-                    }
-                ]
-            },
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"tableLast": {
+		"name": "last",
+		"scope": "global",
+		"value": [
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
 			{
 				"output": "no way",
 				"conditions": [
@@ -382,40 +382,40 @@
 					}
 				]
 			}
-        ],
-        "varType": "table",
-        "priority": "last",
-        "default": "shouldn't"
-    },
-    "tableLastToFirst": {
-        "name": "first",
-        "scope": "global",
-        "value": [
-            {
-                "output": "yes",
-                "conditions": [
-                    {
-                        "val1": "nice",
-                        "comparison": "eq",
-                        "val2": "nice"
-                    }
-                ]
-            },
-            {
-                "output": "no",
-                "conditions": [
-                    {
-                        "val1": "cool",
-                        "comparison": "eq",
-                        "val2": "nice"
-                    }
-                ]
-            }
-        ],
-        "varType": "table",
-        "priority": "last",
-        "default": "shouldn't"
-    },
+		],
+		"varType": "table",
+		"priority": "last",
+		"default": "shouldn't"
+	},
+	"tableLastToFirst": {
+		"name": "first",
+		"scope": "global",
+		"value": [
+			{
+				"output": "yes",
+				"conditions": [
+					{
+						"val1": "nice",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			},
+			{
+				"output": "no",
+				"conditions": [
+					{
+						"val1": "cool",
+						"comparison": "eq",
+						"val2": "nice"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "last",
+		"default": "shouldn't"
+	},
 	"fullTableFirstOutput": {
 		"output": "yes",
 		"outIndex": 1,
@@ -499,7 +499,7 @@
 			{
 				"output": {
 					"value": "nice",
-					"varType": "reference"
+					"reference": true
 				},
 				"conditions": [
 					{
@@ -541,7 +541,7 @@
 			{
 				"output": {
 					"value": "nice",
-					"varType": "reference"
+					"reference": true
 				},
 				"conditions": [
 					{
@@ -575,79 +575,79 @@
 		"priority": "first",
 		"default": {
 			"value": "nice",
-			"varType": "reference"
+			"reference": true
 		}
 	},
-    "expressionLiteral": {
-        "name": "var",
-        "scope": "global",
-        "value": "4 * x",
-        "varType": "expression",
-        "vars": {
-            "x": "15"
-        }
-    },
-    "basicExpression": {
-        "name": "var",
-        "scope": "global",
-        "value": "30",
-        "varType": "basic"
-    },
-    "expressionReference": {
-        "name": "expression",
-        "scope": "global",
-        "value": "4 * x",
-        "varType": "expression",
-        "vars": {
-            "x": {
-                "value": "var",
-                "varType": "reference"
-            }
-        }
-    },
-    "tableExpression": {
-        "name": "var",
-        "scope": "global",
-        "value": [
-            {
-                "output": "45",
-                "conditions": [
-                    {
-                        "val1": "1",
-                        "comparison": "eq",
-                        "val2": "1"
-                    }
-                ]
-            }
-        ],
-        "varType": "table",
-        "priority": "first",
-        "default": "shouldn't"
-    },
-    "expressionFunction": {
-        "name": "expression",
-        "scope": "global",
-        "value": "f(x) + 15",
-        "varType": "expression",
-        "functions": [
-            {
-                "value": "math.function",
-                "varType": "reference"
-            }
-        ],
-        "vars": {
-            "x": {
-                "value": "var",
-                "varType": "reference"
-            }
-        }
-    },
-    "basicFunction": {
-        "name": "function",
-        "scope": "math",
-        "value": "f(x) = 4 * x",
-        "varType": "basic"
-    },
+	"expressionLiteral": {
+		"name": "var",
+		"scope": "global",
+		"value": "4 * x",
+		"varType": "expression",
+		"vars": {
+			"x": "15"
+		}
+	},
+	"basicExpression": {
+		"name": "var",
+		"scope": "global",
+		"value": "30",
+		"varType": "basic"
+	},
+	"expressionReference": {
+		"name": "expression",
+		"scope": "global",
+		"value": "4 * x",
+		"varType": "expression",
+		"vars": {
+			"x": {
+				"value": "var",
+				"reference": true
+			}
+		}
+	},
+	"tableExpression": {
+		"name": "var",
+		"scope": "global",
+		"value": [
+			{
+				"output": "45",
+				"conditions": [
+					{
+						"val1": "1",
+						"comparison": "eq",
+						"val2": "1"
+					}
+				]
+			}
+		],
+		"varType": "table",
+		"priority": "first",
+		"default": "shouldn't"
+	},
+	"expressionFunction": {
+		"name": "expression",
+		"scope": "global",
+		"value": "f(x) + 15",
+		"varType": "expression",
+		"functions": [
+			{
+				"value": "math.function",
+				"reference": true
+			}
+		],
+		"vars": {
+			"x": {
+				"value": "var",
+				"reference": true
+			}
+		}
+	},
+	"basicFunction": {
+		"name": "function",
+		"scope": "math",
+		"value": "f(x) = 4 * x",
+		"varType": "basic"
+	},
 	"expressionFunctionList": {
 		"name": "expression",
 		"scope": "global",
@@ -657,23 +657,20 @@
 			"c(x) = 5 * x",
 			{
 				"value": "math.functions",
-				"varType": "reference"
+				"reference": true
 			}
 		],
 		"vars": {
 			"x": {
 				"value": "var",
-				"varType": "reference"
+				"reference": true
 			}
 		}
 	},
 	"listFunctions": {
 		"name": "functions",
 		"scope": "math",
-		"value": [
-			"a(x) = 3 * x",
-			"b(x) = 4 * x"
-		],
+		"value": ["a(x) = 3 * x", "b(x) = 4 * x"],
 		"varType": "list"
 	},
 	"expressionRefValue": {
@@ -681,7 +678,7 @@
 		"scope": "global",
 		"value": {
 			"value": "math.expression1",
-			"varType": "reference"
+			"reference": true
 		},
 		"varType": "expression",
 		"vars": {
@@ -697,12 +694,7 @@
 	"listExpressionReferenced": {
 		"name": "expression1",
 		"scope": "math",
-		"value": [
-			"4 * x",
-			"x + 12",
-			"5 / x",
-			"1 - x"
-		],
+		"value": ["4 * x", "x + 12", "5 / x", "1 - x"],
 		"varType": "list"
 	},
 	"expressionMissingFunc": {
@@ -713,7 +705,7 @@
 		"functions": [
 			{
 				"value": "no",
-				"varType": "reference"
+				"reference": true
 			}
 		],
 		"vars": {
@@ -738,7 +730,7 @@
 						"comparison": "in",
 						"val2": {
 							"value": "list",
-							"varType": "reference"
+							"reference": true
 						}
 					}
 				]
@@ -755,7 +747,7 @@
 			{
 				"output": {
 					"value": "nice",
-					"varType": "reference"
+					"reference": true
 				},
 				"conditions": [
 					{
@@ -770,7 +762,7 @@
 		"priority": "first",
 		"default": {
 			"value": "nice",
-			"varType": "reference"
+			"reference": true
 		}
 	},
 	"fullTableRefOutput": {
@@ -797,7 +789,7 @@
 		"value": [
 			{
 				"value": "scope1",
-				"varType": "reference"
+				"reference": true
 			}
 		],
 		"varType": "list"
@@ -818,12 +810,12 @@
 					{
 						"val1": {
 							"value": "list",
-							"varType": "reference"
+							"reference": true
 						},
 						"comparison": "eq",
 						"val2": {
 							"value": "list2",
-							"varType": "reference"
+							"reference": true
 						}
 					}
 				]
@@ -834,12 +826,12 @@
 					{
 						"val1": {
 							"value": "list",
-							"varType": "reference"
+							"reference": true
 						},
 						"comparison": "lt",
 						"val2": {
 							"value": "var",
-							"varType": "reference"
+							"reference": true
 						}
 					}
 				]
@@ -850,12 +842,12 @@
 					{
 						"val1": {
 							"value": "list",
-							"varType": "reference"
+							"reference": true
 						},
 						"comparison": "gt",
 						"val2": {
 							"value": "var",
-							"varType": "reference"
+							"reference": true
 						}
 					}
 				]
@@ -866,12 +858,12 @@
 					{
 						"val1": {
 							"value": "var2",
-							"varType": "reference"
+							"reference": true
 						},
 						"comparison": "gt",
 						"val2": {
 							"value": "list",
-							"varType": "reference"
+							"reference": true
 						}
 					}
 				]
@@ -882,12 +874,12 @@
 					{
 						"val1": {
 							"value": "sublist",
-							"varType": "reference"
+							"reference": true
 						},
 						"comparison": "in",
 						"val2": {
 							"value": "list",
-							"varType": "reference"
+							"reference": true
 						}
 					}
 				]
@@ -903,7 +895,7 @@
 		"value": [
 			{
 				"value": "list",
-				"varType": "reference"
+				"reference": true
 			}
 		],
 		"varType": "list"
