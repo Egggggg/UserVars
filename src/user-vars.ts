@@ -60,8 +60,10 @@ export interface Condition {
  */
 export interface ConditionData {
 	val1: Literal;
+	val1Path: string;
 	comparison: Comparison;
 	val2: Literal;
+	val2Path: string;
 }
 
 /**
@@ -78,6 +80,7 @@ export interface TableRow {
 export interface TableRowData {
 	conditions: ConditionData[];
 	output: Literal;
+	outputPath: string;
 }
 
 /**
@@ -96,9 +99,11 @@ export interface TableVar extends Var {
  */
 export interface TableData {
 	output: Literal;
+	outputPath: string;
 	outIndex: number;
 	value: TableRowData[];
 	default: Literal;
+	defaultPath: string;
 	priority: string; // "first" or "last"
 }
 
@@ -534,7 +539,11 @@ export class UserVars {
 
 				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
 				
-				input[i] = followed.toString();
+				if (typeof followed === "string") {
+					input[i] = followed;
+				} else {
+					throw new Error("List variables cannot be used in expressions")
+				}
 			}
 
 			return parsed.evaluate(input).toString();
@@ -603,9 +612,11 @@ export class UserVars {
 	#evaluateFull(table: TableVar): TableData {
 		const output = {
 			output: "",
+			outputPath: "",
 			outIndex: -1,
 			value: [],
 			default: "",
+			defaultPath: "",
 			priority: table.priority
 		} as TableData;
 
@@ -617,14 +628,20 @@ export class UserVars {
 			const row = table.value[i];
 			const rowData = {
 				conditions: [],
-				output: ""
+				output: "",
+				outputPath: ""
 			} as TableRowData;
 			let out = true;
 
 			for (let e of row.conditions) {
 				const cond = <{output: boolean, val1: Literal, val2: Literal}> this.#evalCondition(e, table.scope, origin, parents, true);
+				let val1Path = "";
+				let val2Path = "";
 
-				rowData.conditions.push({val1: cond.val1, val2: cond.val2, comparison: e.comparison});
+				if (typeof e.val1 !== "string") val1Path = e.val1.value;
+				if (typeof e.val2 !== "string") val2Path = e.val2.value;
+
+				rowData.conditions.push({val1: cond.val1, val1Path, val2: cond.val2, val2Path, comparison: e.comparison});
 
 				if (!cond.output) {
 					out = false;
@@ -632,33 +649,44 @@ export class UserVars {
 			}
 
 			let rowOut;
+			let rowOutPath = "";
 
 			if (typeof row.output === "string") {
 				rowOut = row.output;
 			} else {
 				rowOut = this.#followReference(row.output, table.scope, origin, parents);
+				rowOutPath = row.output.value;
 			}
 
-			output.value.push({...rowData, output: rowOut});
+			output.value.push({...rowData, output: rowOut, outputPath: rowOutPath});
 
 			if (out && (!found || table.priority === "last")) {
 				found = true;
 				output.output = rowOut;
 				output.outIndex = i;
+
+				if (typeof row.output !== "string") output.outputPath = row.output.value;
 			}
 		}
 
 		let defaultVal;
+		let defaultPath = "";
 
 		if (typeof table.default === "string") {
 			defaultVal = table.default;
 		} else {
-			defaultVal = this.#followReference(table.default.value, table.scope, origin, parents);
+			defaultVal = this.#followReference(table.default, table.scope, origin, parents);
+			defaultPath = table.default.value;
 		}
 
 		output.default = defaultVal;
+		output.defaultPath = defaultPath;
 
-		if (!found) output.output = defaultVal;
+		if (!found) {
+			output.output = defaultVal;
+
+			if (typeof table.default !== "string") output.outputPath = output.defaultPath;
+		}
 
 		return output;
 	}

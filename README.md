@@ -28,7 +28,7 @@ import { UserVars } from "uservars";
 const userVars = new UserVars();
 ```
 
-After that, you can start adding variables. This is done with the `UserVars.setVar()` function. It requires input conforming to one of the four variable types as shown [here](#variable-types). In many cases (anywhere `Reference` is listed as a possible type), string literals can be replaced by [References](#reference) to other variables. There are also scopes available to use. These let you separate variables, so you can reuse names. To go back up to global from a scoped variable, add `../` to the start of the path.
+After that, you can start adding variables. This is done with the `UserVars.setVar` function. It requires input conforming to one of the four variable types shown [here](#variable-types). In many cases (anywhere `Reference` is listed as a possible type), string literals can be replaced by [References](#reference) to other variables. This library also has scopes. These let you separate variables, so you can reuse names and do other scope magic. To go back up to global from a scoped variable, add `../` to the start of the path.
 
 ---
 
@@ -36,8 +36,8 @@ After that, you can start adding variables. This is done with the `UserVars.setV
 
 All variable types included in this library have four common fields:
 
-- `name` The last part of the path used to reference the variable. Must match the Regex pattern `/^[A-Z\d_]+$/i`
-- `scope` The top level name of the variable. If "global", it can be omitted from the path anywhere the variable is referred to. Must match the Regex pattern `/^[A-Z\d_]+$/i`
+- `name` The last part of the path used to reference the variable. Must match the Regex pattern `/^[A‑Z\d_]+$/i`
+- `scope` The top level name of the variable. If "global", it can be omitted from the path anywhere the variable is referred to. Must match the Regex pattern `/^[A‑Z\d_]+$/i`
 - `value` The value stored in the variable. Depending on which type of variable it is, this will have a different required structure.
 - `varType` This is used internally to tell what kind of variable is being evaluated. If it doesn't match the actual structure a `TypeError` will be thrown.
 
@@ -154,3 +154,101 @@ Conditions are used to decide which TableRow's value gets output from a Table.
     "val2": string | Reference
 }
 ```
+
+### TableData
+
+Full data of a Table, including all Conditions and outputs, and their paths.
+
+- `output` The final output value.
+- `outputPath` The path `output` came from, or an empty string if none.
+- `outIndex` The row of `value` that output the final value, or -1 for default.
+- `value` An array of [TableRowData](#tablerowdata).
+- `default` The default value that would be output if nothing else was.
+- `defaultPath` The path `default` came from, or an empty string if none.
+- `priority` Either `"first"` or `"last"`, just for convenience.
+
+```ts
+{
+	"output": Literal,
+	"outputPath": string,
+	"outIndex": number,
+	"value": Array<TableRowData>,
+	"default": Literal,
+	"defaultPath": string,
+	"priority": string
+}
+```
+
+### TableRowData
+
+Full data of a TableRow, including all conditions and outputs, and their paths.
+
+- `conditions` Array of [ConditionData](#conditiondata) that was evaluated to see if this row should be output.
+- `output` The resolved value of the output field of the matching [TableRow](#tablerow).
+- `outputPath` The path `output` came from, or an empty string if none.
+
+```ts
+{
+	"conditions": Array<ConditionData>,
+	"output": Literal,
+	"outputPath": string
+}
+```
+
+### ConditionData
+
+Full data of a Condition, including paths.
+
+- `val1` The resolved value of `val1` from the matching [Condition](#condition).
+- `val1Path` The path `val1` came from, or an empty string if none.
+- `comparison` Either `"eq"`, `"lt"`, `"gt"`, or `"in"`.
+- `val2` The resolved value of `val2` from the matching [Condition](#condition).
+- `val2Path` The path `val2` came from, or an empty string if none.
+
+```ts
+{
+	"val1": Literal,
+	"val1Path": string,
+	"comparison": Comparison,
+	"val2": Literal,
+	"val2Path": string
+}
+```
+
+---
+
+## Docs
+
+### UserVars.setVar(value: Var, forceOverwrite: boolean = false)
+
+Sets a variable according to `value`.
+
+#### Arguments
+
+- `value` A [Var](#variable-types) containing all the data needed to set the variable.
+- `forceOverwrite` [OPTIONAL] `true` if variable can overwrite a scope with the same name and vice versa, or `false` if not
+
+### UserVars.setVarBulk(...values: Array<string>)
+
+Wrapper for calling `UserVars.setVar` multiple times with each item of `values`.
+
+#### Arguments
+
+- `values` An array of [Vars](#variable-types) to be passed to `UserVars.setVar`.
+
+### UserVars.getVar(path: string, full?: boolean)
+
+Evaluates a variable (or hits the cache), and returns the output.
+
+#### Arguments
+
+- `path` The absolute path to the variable you want to get.
+- `full` [OPTIONAL] If the variable at `path` is a Table, this controls whether just the output is returned (`false`) or the full [TableData](#tabledata) (`true`).
+
+### UserVars.getRawVar(path: string)
+
+Returns the raw JSON data behind the variable at `path`.
+
+#### Arguments
+
+- `path` The path to get the variable data from.

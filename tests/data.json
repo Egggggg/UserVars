@@ -418,78 +418,100 @@
 	},
 	"fullTableFirstOutput": {
 		"output": "yes",
+		"outputPath": "",
 		"outIndex": 1,
 		"value": [
 			{
 				"output": "no way",
+				"outputPath": "",
 				"conditions": [
 					{
 						"val1": "nice",
+						"val1Path": "",
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": "cool",
+						"val2Path": ""
 					}
 				]
 			},
 			{
 				"output": "yes",
+				"outputPath": "",
 				"conditions": [
 					{
 						"val1": "nice",
+						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": "nice",
+						"val2Path": ""
 					}
 				]
 			},
 			{
 				"output": "no",
+				"outputPath": "",
 				"conditions": [
 					{
 						"val1": "nice",
+						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": "nice",
+						"val2Path": ""
 					}
 				]
 			}
 		],
 		"default": "shouldn't",
+		"defaultPath": "",
 		"priority": "first"
 	},
 	"fullTableLastOutput": {
 		"output": "yes",
+		"outputPath": "",
 		"outIndex": 1,
 		"value": [
 			{
 				"output": "no",
+				"outputPath": "",
 				"conditions": [
 					{
 						"val1": "nice",
+						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": "nice",
+						"val2Path": ""
 					}
 				]
 			},
 			{
 				"output": "yes",
+				"outputPath": "",
 				"conditions": [
 					{
 						"val1": "nice",
+						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": "nice",
+						"val2Path": ""
 					}
 				]
 			},
 			{
 				"output": "no way",
+				"outputPath": "",
 				"conditions": [
 					{
 						"val1": "nice",
+						"val1Path": "",
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": "cool",
+						"val2Path": ""
 					}
 				]
 			}
 		],
 		"default": "shouldn't",
+		"defaultPath": "",
 		"priority": "last"
 	},
 	"tableRefFirst": {
@@ -746,14 +768,17 @@
 		"value": [
 			{
 				"output": {
-					"value": "nice",
+					"value": "scope1.nice",
 					"reference": true
 				},
 				"conditions": [
 					{
-						"val1": "nice",
+						"val1": {
+							"value": "nice",
+							"reference": true
+						},
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": "not cool"
 					}
 				]
 			}
@@ -767,20 +792,25 @@
 	},
 	"fullTableRefOutput": {
 		"output": "cool",
+		"outputPath": "nice",
 		"outIndex": -1,
 		"value": [
 			{
-				"output": "cool",
+				"output": "epic",
+				"outputPath": "scope1.nice",
 				"conditions": [
 					{
-						"val1": "nice",
+						"val1": "cool",
+						"val1Path": "nice",
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": "not cool",
+						"val2Path": ""
 					}
 				]
 			}
 		],
 		"default": "cool",
+		"defaultPath": "nice",
 		"priority": "first"
 	},
 	"listRefScope": {

@@ -235,7 +235,7 @@ describe("getVar", () => {
 		});
 
 		test("Table full output with references", () => {
-			userVars.setVarBulk(data.tableFullRefs, data.basicGlobalLiteral);
+			userVars.setVarBulk(data.tableFullRefs, data.basicGlobalLiteral, data.basicScopedLiteral);
 
 			expect(userVars.getVar("table", true)).toStrictEqual(data.fullTableRefOutput);
 		});
