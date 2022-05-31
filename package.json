@@ -8,11 +8,7 @@
 		"typescript": "^4.6.4"
 	},
 	"name": "uservars",
-<<<<<<< HEAD
-	"version": "1.0.2",
-=======
 	"version": "1.1.1",
->>>>>>> 15da567a4f90983328374e0a0a5577885c809994
 	"description": "Enables end users to create variables",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

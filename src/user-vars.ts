@@ -25,11 +25,9 @@ export interface BasicVar extends Var {
 
 /**
  * Reference to a variable, used in lists and tables
- * varType is "reference"
  */
 export interface Reference {
 	value: string;
-	reference: true;
 }
 
 /**
@@ -363,7 +361,7 @@ export class UserVars {
         }
 
         if (value.varType === "basic") {
-			if (typeof value.value !== "string" && !("reference" in value.value)) {
+			if (typeof value.value !== "string" && typeof (<Reference>value.value).value !== "string") {
 				throw new TypeError(`Basic variable value must be of type string | Reference (${value.scope}.${value.name})`);
 			}
 
@@ -377,14 +375,14 @@ export class UserVars {
         } else if (value.varType === "list") {
 			if (
 				!(value.value instanceof Array) 
-				|| (<Array<string | Value | TableRow>>value.value).filter((i) => {
-					typeof i !== "string"
+				|| (<Array<string | Value | TableRow>>value.value).filter(i => {
+					typeof i !== "string" && typeof (<Reference>i).value !== "string"
 				}).length > 0) throw new TypeError(`List variable value must be of type string[] (${value.scope}.${value.name})`);
 
 			const output: string[] = [];
 			const list = value as ListVar;
 
-			list.value.forEach((e) => {
+			list.value.forEach(e => {
 				if (typeof e === "string") {
 					output.push(e);
 				} else {
@@ -403,11 +401,11 @@ export class UserVars {
 			return output;
 		} else if (value.varType === "table") {
 			if (!("priority" in value) || !["first", "last"].includes((<TableVar>value).priority)) throw new TypeError(`Table "variable" priority field must be either "first" or "last" (${value.scope}.${value.name}))`);
-			if (!("default" in value) || (!(typeof (<TableVar>value).default === "string") && !("reference" in <Reference>(<TableVar>value).default))) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
+			if (!("default" in value) || (typeof (<TableVar>value).default !== "string" && typeof (<Reference>(<TableVar>value).default).value !== "string")) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
 			if (
 				!(value.value instanceof Array) 
-				|| (<Array<string | Value | TableRow>>value.value).filter((i) => {
-					typeof i === "string" || "reference" in i
+				|| (<Array<Value | TableRow>>value.value).filter(i => {
+					typeof i === "string" || (<Reference>i).value === "string"
 				}).length > 0) throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
 
 			const table = value as TableVar;
@@ -462,17 +460,21 @@ export class UserVars {
 		} else if (value.varType === "expression") {
 			if (
 				!("vars" in value) || 
-					Object.keys((<ExpressionVar>value).vars).filter((i) => {
-						typeof i !== "string" && !("reference" in i)
+					Object.keys((<ExpressionVar>value).vars).filter(i => {
+						typeof i !== "string"
+					}).length > 0 ||
+					Object.values((<ExpressionVar>value).vars).filter(i => {
+						typeof i !== "string" && typeof (<Reference>i).value !== "string"
 					}).length > 0
 			) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
 
 			if (
 				"functions" in value && (
 					!((<ExpressionVar>value).functions instanceof Array) ||
-					(<Value[]>(<ExpressionVar>value).functions).filter((i) => {
-						typeof i !== "string" && !("reference" in i)
-					}).length > 0)
+					(<Value[]>(<ExpressionVar>value).functions).filter(i => {
+						typeof i !== "string" && typeof (<Reference>i).value !== "string"
+					}).length > 0
+				)
 			) throw new TypeError(`Expression "functions" field must be of type Value[] (${value.scope}.${value.name})`);
 
 			let expr = value as ExpressionVar;
@@ -522,7 +524,7 @@ export class UserVars {
 			let parsed = this.parser.parse(toParse)
 
 			let vars = parsed.variables();
-			let input: {[name: string]: string} = {};
+			let input: {[name: string]: string | number[]} = {};
 
 			// evaluate all variables to be passed into parsed.evaluate()
 			for (let i of Object.keys(expr.vars)) {
@@ -542,11 +544,18 @@ export class UserVars {
 				if (typeof followed === "string") {
 					input[i] = followed;
 				} else {
-					throw new Error("List variables cannot be used in expressions")
+					input[i] = followed.map(e => parseFloat(e));
 				}
 			}
 
-			return parsed.evaluate(input).toString();
+			// @ts-ignore
+			const evaluated = parsed.evaluate(input).toString();
+
+			if (evaluated.match(/,/g)) {
+				return evaluated.split(",");
+			}
+
+			return evaluated;
 		}
 
         return "[NOT IMPLEMENTED]";
