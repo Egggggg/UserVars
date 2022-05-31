@@ -31,9 +31,19 @@ export interface Reference {
 }
 
 /**
+ * Inline expression
+ */
+export interface InlineExpression {
+	value: string;
+	vars: {
+		[name: string]: Value
+	}
+}
+
+/**
  * Value for list items and table outputs
  */
-export type Value = Reference | string;
+export type Value = Reference | string | InlineExpression;
 
 /**
  * Should evaluate to an array of BasicVars
@@ -174,6 +184,45 @@ function parseLtGt(arg1: Literal, arg2: Literal) {
 	}
 
 	return {num1, num2};
+}
+
+/**
+ * Normalizes a path relative to its scope.
+ * Only takes into account "../" and the first and last period delimited values
+ * Usually not needed if scope is global.
+ * @param {string} path             - The path to normalize
+ * @param {string} [scope="global"] - The scope the path is relative to
+ * @returns {string} The normalized path
+ */
+function normalizePath(path: string, scope: string = "global"): string {
+	let up = false;
+
+	if (path.startsWith("../") && scope !== "global") {
+		up = true;
+		path = path.replace("../", "");
+	}
+
+	if (path.startsWith("global.")) {
+		path = path.replace("global.", "");
+	}
+
+	// remove multiple periods in a row
+	path = path.replace(/\.+/g, ".");
+
+	let split = path.split(".");
+	const multipleParts = split.length > 1;
+
+	split = [split[0], split[split.length - 1]];
+
+	if ((scope === "global" || up) && !multipleParts) {
+		return split[0];
+	}
+
+	if (!multipleParts) {
+		return `${scope}.${split[0]}`;
+	}
+
+	return split.join(".");
 }
 
 const comparisons = {
@@ -338,10 +387,9 @@ export class UserVars {
      * Evaluates a Var into a string or string[]
      * @param {Var}     value         - The value to evaluate
      * @param {string}  [origin=path] - The original var's path for circular dependency detection
-	 * @param {boolean} recursed      - false on first iteration, true after that, should only be set to true internally
      * @returns {Literal} The evaluated value
      */
-    #evaluate(value: Var, origin: string = this.getPath(value.name, value.scope), recursed: boolean = false, parents: string[] = []): Literal {
+    #evaluate(value: Var, origin?: Set<string>, parents: string[] = []): Literal {
 		if (!parents) parents = [];
 		
 		const thisPath = this.getPath(value.name, value.scope);
@@ -356,9 +404,15 @@ export class UserVars {
 
 		parents = [...parents, thisPath];
 
-        if (recursed && origin === thisPath) {
-            return "[CIRCULAR DEPENDENCY]";
-        }
+		if (!origin) {
+			origin = new Set<string>()
+		}
+
+		if (!origin.has(thisPath)) {
+			origin.add(thisPath);
+		} else {
+			return "[CIRCULAR DEPENDENCY]";
+		}
 
         if (value.varType === "basic") {
 			if (typeof value.value !== "string" && typeof (<Reference>value.value).value !== "string") {
@@ -386,7 +440,7 @@ export class UserVars {
 				if (typeof e === "string") {
 					output.push(e);
 				} else {
-					const current = this.#followReference(e.value, list.scope, origin, parents);
+					const current = this.#followReference(e.value, list.scope, <Set<string>>origin, parents);
 
 					if (current instanceof Array) {
 						output.push(...current);
@@ -569,7 +623,7 @@ export class UserVars {
 	 * @param {boolean}   full   - Whether operand values should be returned 
 	 * @return {boolean} Whether the condition passes
 	 */
-	#evalCondition(cond: Condition, scope: string, origin: string, parents: string[], full: boolean): boolean | {output: boolean, val1: Literal, val2: Literal} {
+	#evalCondition(cond: Condition, scope: string, origin: Set<string>, parents: string[], full: boolean): boolean | {output: boolean, val1: Literal, val2: Literal} {
 		let val1;
 		let val2;
 
@@ -629,8 +683,11 @@ export class UserVars {
 			priority: table.priority
 		} as TableData;
 
-		const origin = this.getPath(table.name, table.scope);
-		const parents = [origin];
+		const thisPath = this.getPath(table.name, table.scope);
+		const origin = new Set<string>()
+		origin.add(thisPath);
+
+		const parents = [thisPath];
 		let found = false;
 
 		for (let i = 0; i < table.value.length; i++) {
@@ -726,7 +783,7 @@ export class UserVars {
      * @returns {Var} The Var found at scope.name
      */
     getRawVar(path: string): Var {
-		const result = get(this.vars, this.normalizePath(path), null);
+		const result = get(this.vars, normalizePath(path), null);
 
 		if (isVar(result)) {
 			return result;
@@ -763,7 +820,7 @@ export class UserVars {
 			return this.cache[path];
 		}
 
-		const value = this.#evaluate(variable, undefined, false);
+		const value = this.#evaluate(variable, undefined);
 
 		this.cache[path] = value;
 		this.changed[path] = false;
@@ -771,53 +828,51 @@ export class UserVars {
 		return value;
 	}
 
-    /**
-     * Normalizes a path relative to its scope.
-     * Only takes into account "../" and the first and last period delimited values
-     * Usually not needed if scope is global.
-     * @param {string} path             - The path to normalize
-     * @param {string} [scope="global"] - The scope the path is relative to
-     * @returns {string} The normalized path
-     */
-    normalizePath(path: string, scope: string = "global"): string {
-        let up = false;
+	#followReference(ref: Value, scope: string, origin: Set<string>, parents: string[]): Literal {
+		if (typeof ref !== "string" && "vars" in ref) {
+			let parsed = this.parser.parse(ref.value);
+			let vars = parsed.variables();
+			let input: {[name: string]: string | number[]} = {};
 
-        if (path.startsWith("../") && scope !== "global") {
-            up = true;
-            path = path.replace("../", "");
-        }
+			for (let i of Object.keys(ref.vars)) {
+				if (!vars.includes(i)) continue;
 
-		if (path.startsWith("global.")) {
-			path = path.replace("global.", "");
+				const current = ref.vars[i];
+
+				if (typeof current === "string") {
+					input[i] = current;
+					continue;
+				}
+
+				const path = normalizePath(current.value, scope);
+				const followed = this.#followReference(path, scope, origin, parents);
+
+				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
+
+				if (typeof followed === "string") {
+					input[i] = followed;
+				} else {
+					input[i] = followed.map(e => parseFloat(e));
+				}
+			}
+
+			// @ts-ignore
+			const evaluated = parsed.evaluate(input).toString();
+
+			if (evaluated.match(/,/g)) {
+				return evaluated.split(",");
+			}
+
+			return evaluated;
 		}
-
-        // remove multiple periods in a row
-        path = path.replace(/\.+/g, ".");
-
-        let split = path.split(".");
-        const multipleParts = split.length > 1;
-
-        split = [split[0], split[split.length - 1]];
-
-        if ((scope === "global" || up) && !multipleParts) {
-            return split[0];
-        }
-
-        if (!multipleParts) {
-            return `${scope}.${split[0]}`;
-        }
-
-        return split.join(".");
-    }
-
-	#followReference(ref: Reference | string, scope: string, origin: string, parents: string[]): Literal {
+		
 		if (typeof ref !== "string") {
 			ref = ref.value;
 		}
 
 		try {
-			const path = this.normalizePath(ref, scope);
-			const value = this.#evaluate(this.getRawVar(path), origin, true, parents);
+			const path = normalizePath(ref, scope);
+			const value = this.#evaluate(this.getRawVar(path), origin, parents);
 
 			this.cache[path] = value;
 			this.changed[path] = false;
