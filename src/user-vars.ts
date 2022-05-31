@@ -150,11 +150,23 @@ export interface Deps {
 }
 
 export interface Cache {
-	[path: string]: Literal | TableData
+	[path: string]: Literal | TableData;
 }
 
 export interface Changed {
-	[path: string]: boolean
+	[path: string]: boolean;
+}
+
+export interface AllVars {
+	[name: string]: Literal | TableData | OutputScope;
+}
+
+export interface OutputScope {
+	[name: string]: Literal | TableData;
+}
+
+export interface AllVarsFlat {
+	[name: string]: Literal | TableData;
 }
 
 /**
@@ -223,6 +235,26 @@ function normalizePath(path: string, scope: string = "global"): string {
 	}
 
 	return split.join(".");
+}
+
+/**
+ * Gets the path to a variable from its scope and name
+ * @param {string} name             - The name of the variable
+ * @param {string} [scope="global"] - The scope of the variable
+ * @returns {string} The path to the variable
+ */
+function getPath(name: string, scope: string = "global"): string {
+	if (scope !== "global") {
+		// return to global
+		if (name.startsWith("../")) {
+			name = name.replace("../", "");
+			   return name;
+		}
+
+		return `${scope}.${name}`;
+	} else {
+		return name;
+	}
 }
 
 const comparisons = {
@@ -335,7 +367,7 @@ export class UserVars {
             if (!this.vars[value.name] || isVar(this.vars[value.name])) {
                 this.vars[value.name] = {...value};
 
-				this.#setChanged(this.getPath(value.name, value.scope));
+				this.#setChanged(getPath(value.name, value.scope));
 
                 return true;
             }
@@ -343,7 +375,7 @@ export class UserVars {
 			if (forceOverwrite) {
 				this.vars[value.name] = {...value};
 
-				this.#setChanged(this.getPath(value.name, value.scope));
+				this.#setChanged(getPath(value.name, value.scope));
 
 				return true;
 			}
@@ -355,7 +387,7 @@ export class UserVars {
 				if (!(<Scope>this.vars[value.scope])[value.name]) {
 					(<Scope>this.vars[value.scope])[value.name] = {...value};
 
-					this.#setChanged(this.getPath(value.name, value.scope));
+					this.#setChanged(getPath(value.name, value.scope));
 
 					return true;
 				}
@@ -392,7 +424,7 @@ export class UserVars {
     #evaluate(value: Var, origin?: Set<string>, parents: string[] = []): Literal {
 		if (!parents) parents = [];
 		
-		const thisPath = this.getPath(value.name, value.scope);
+		const thisPath = getPath(value.name, value.scope);
 
 		if (!this.deps[thisPath]) this.deps[thisPath] = new Set();
 
@@ -685,7 +717,7 @@ export class UserVars {
 			priority: table.priority
 		} as TableData;
 
-		const thisPath = this.getPath(table.name, table.scope);
+		const thisPath = getPath(table.name, table.scope);
 		const origin = new Set<string>()
 		origin.add(thisPath);
 
@@ -760,26 +792,6 @@ export class UserVars {
 	}
 
     /**
-     * Gets the path to a variable from its scope and name
-     * @param {string} name             - The name of the variable
-     * @param {string} [scope="global"] - The scope of the variable
-     * @returns {string} The path to the variable
-     */
-    getPath(name: string, scope: string = "global"): string {
-        if (scope !== "global") {
-            // return to global
-            if (name.startsWith("../")) {
-                name = name.replace("../", "");
-               	return name;
-            }
-
-            return `${scope}.${name}`;
-        } else {
-            return name;
-        }
-    }
-
-    /**
      * Gets a Var from a string path
      * @param {string} path - The path to the variable
      * @returns {Var} The Var found at scope.name
@@ -799,7 +811,7 @@ export class UserVars {
     /**
      * Gets a Var from a string path
      * @param {string}  path - The path to the variable
-	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
+	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return TableData
      * @returns {Var} The Var found at the path
      */
 	getVar(path: string, full?: boolean): Literal | TableData {
@@ -828,6 +840,50 @@ export class UserVars {
 		this.changed[path] = false;
 
 		return value;
+	}
+
+	/**
+	 * Returns the values of all variables, structured, optionally with full TableData
+	 * @param {boolean} flat - Whether the output data should be a flat mapping of paths to literals, or scopes should be entries containing values
+	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return TableData
+	 */
+	getAllVars(flat?: boolean, full?: boolean): AllVars | AllVarsFlat {
+		if (flat) {
+			const output: AllVarsFlat = {};
+
+			for (let i of Object.keys(this.vars)) {
+				let current = this.vars[i];
+
+				if (isVar(current)) {
+					output[i] = this.getVar(i, full);
+				} else {
+					for (let e of Object.keys(current)) {
+						output[`${i}.${e}`] = this.getVar(`${i}.${e}`, full);
+					}
+				}
+			}
+
+			return output;
+		} else {
+			const output: AllVars = {};
+
+			for (let i of Object.keys(this.vars)) {
+				let current = this.vars[i];
+
+				if (isVar(current)) {
+					output[i] = this.getVar(i, full);
+				} else {
+					output[i] = {} as OutputScope;
+
+					for (let e of Object.keys(current)) {
+						// @ts-ignore
+						output[i][e] = this.getVar(`${i}.${e}`, full);
+					}
+				}
+			}
+
+			return output;
+		}
 	}
 
 	#followReference(ref: Value, scope: string, origin: Set<string>, parents: string[]): Literal {
