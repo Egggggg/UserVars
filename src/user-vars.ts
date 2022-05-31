@@ -406,6 +406,8 @@ export class UserVars {
 
 		if (!origin) {
 			origin = new Set<string>()
+		} else {
+			origin = new Set<string>(origin);
 		}
 
 		if (!origin.has(thisPath)) {
