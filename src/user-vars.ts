@@ -539,7 +539,11 @@ export class UserVars {
 
 				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
 				
-				input[i] = followed.toString();
+				if (typeof followed === "string") {
+					input[i] = followed;
+				} else {
+					throw new Error("List variables cannot be used in expressions")
+				}
 			}
 
 			return parsed.evaluate(input).toString();
