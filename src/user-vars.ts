@@ -11,7 +11,7 @@ type Literal = string | string[];
 export interface Var {
     name: string;
     scope: string;
-    value: string | Reference | Value | Value[] | TableRow[];
+    value: Value | Value[] | TableRow[];
     varType: string; //"basic", "list", "table", or "expression"
 }
 
@@ -20,13 +20,29 @@ export interface Var {
  * varType is "basic"
  */
 export interface BasicVar extends Var {
-    value: string | Reference;
+    value: Value;
+}
+
+/**
+ * Basic value
+ */
+export interface Value {
+	value: string;
+	type: string; // "literal", "reference", or "expression"
+}
+
+/**
+ * String literal, evaluates literally
+ */
+export interface StringLiteral extends Value {
+	value: string;
+	type: string; // "literal"
 }
 
 /**
  * Reference to a variable, used in lists and tables
  */
-export interface Reference {
+export interface Reference extends Value {
 	value: string;
 }
 
@@ -41,7 +57,7 @@ export interface InlineExpression {
 }
 
 /**
- * Value for list items and table outputs
+ * Inline expression
  */
 export type Value = Reference | string | InlineExpression;
 
@@ -455,8 +471,8 @@ export class UserVars {
 
             const basic = value as BasicVar;
 
-            if (typeof basic.value === "string") {
-                return basic.value;
+            if (basic.value.type === "literal") {
+                return basic.value.value;
             }
 
 			return this.#followReference(basic.value, basic.scope, origin, parents);
@@ -511,11 +527,11 @@ export class UserVars {
 					}
 
 					if (out) {
-						if (typeof table.value[i].output === "string") {
-							return <string> table.value[i].output;
+						if (table.value[i].output.type === "literal") {
+							return table.value[i].output.value;
 						}
 
-						return this.#followReference((<Reference> table.value[i].output).value, table.scope, origin, parents);
+						return this.#followReference(table.value[i].output, table.scope, origin, parents);
 					}
 				}
 			} else {
@@ -531,20 +547,20 @@ export class UserVars {
 					}
 
 					if (out) {
-						if (typeof table.value[i].output === "string") {
-							return <string> table.value[i].output;
+						if (table.value[i].output.type === "literal") {
+							return table.value[i].output.value;
 						}
 
-						return this.#followReference((<Reference> table.value[i].output).value, table.scope, origin, parents);
+						return this.#followReference(table.value[i].output, table.scope, origin, parents);
 					}
 				}
 			}
 
-			if (typeof table.default === "string") {
-				return table.default;
+			if (table.default.type === "literal") {
+				return table.default.value;
 			}
 
-			return this.#followReference(table.default.value, table.scope, origin, parents);
+			return this.#followReference(table.default, table.scope, origin, parents);
 		} else if (value.varType === "expression") {
 			if (
 				!("vars" in value) || 
@@ -554,7 +570,7 @@ export class UserVars {
 					Object.values((<ExpressionVar>value).vars).filter(i => {
 						typeof i !== "string" && typeof (<Reference>i).value !== "string"
 					}).length > 0
-			) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
+				) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
 
 			if (
 				"functions" in value && (
@@ -568,8 +584,8 @@ export class UserVars {
 			let expr = value as ExpressionVar;
 			let toParse: string;
 			
-			if (typeof expr.value === "string") {
-				toParse = expr.value;
+			if (expr.value.type === "literal") {
+				toParse = expr.value.value;
 			} else {
 				const followed = this.#followReference(expr.value, expr.scope, origin, parents);
 
@@ -586,7 +602,7 @@ export class UserVars {
 				// prepend toParse with functions, to be used in expr.value
 				// @ts-ignore
 				for (let i of expr.functions) {
-					if (typeof i === "string") {
+					if (i.type === "literal") {
 						functions += `${i}; `;
 					} else {
 						const func = this.#followReference(i, expr.scope, origin, parents);
@@ -620,8 +636,8 @@ export class UserVars {
 
 				const current = expr.vars[i];
 
-				if (typeof current === "string") {
-					input[i] = current;
+				if (current.type === "literal") {
+					input[i] = current.value;
 					continue;
 				}
 
@@ -661,18 +677,16 @@ export class UserVars {
 		let val1;
 		let val2;
 
-		if (typeof cond.val1 === "string") {
-			val1 = cond.val1;
-		} else {
+		if (cond.val1.type === "literal") {
 			val1 = cond.val1.value;
-			val1 = this.#followReference(val1, scope, origin, parents);
+		} else {
+			val1 = this.#followReference(cond.val1, scope, origin, parents);
 		}
 		
-		if (typeof cond.val2 === "string") {
-			val2 = cond.val2;
-		} else {
+		if (cond.val2.type === "literal") {
 			val2 = cond.val2.value;
-			val2 = this.#followReference(val2, scope, origin, parents);
+		} else {
+			val2 = this.#followReference(cond.val2, scope, origin, parents);
 		}	
 
 		if (cond.comparison === "eq") {
@@ -738,8 +752,8 @@ export class UserVars {
 				let val1Path = "";
 				let val2Path = "";
 
-				if (typeof e.val1 !== "string") val1Path = e.val1.value;
-				if (typeof e.val2 !== "string") val2Path = e.val2.value;
+				if (e.val1.type !== "literal") val1Path = e.val1.value;
+				if (e.val2.type !== "literal") val2Path = e.val2.value;
 
 				rowData.conditions.push({val1: cond.val1, val1Path, val2: cond.val2, val2Path, comparison: e.comparison});
 
@@ -751,8 +765,8 @@ export class UserVars {
 			let rowOut;
 			let rowOutPath = "";
 
-			if (typeof row.output === "string") {
-				rowOut = row.output;
+			if (row.output.type === "literal") {
+				rowOut = row.output.value;
 			} else {
 				rowOut = this.#followReference(row.output, table.scope, origin, parents);
 				rowOutPath = row.output.value;
@@ -765,15 +779,15 @@ export class UserVars {
 				output.output = rowOut;
 				output.outIndex = i;
 
-				if (typeof row.output !== "string") output.outputPath = row.output.value;
+				if (row.output.type !== "literal") output.outputPath = row.output.value;
 			}
 		}
 
 		let defaultVal;
 		let defaultPath = "";
 
-		if (typeof table.default === "string") {
-			defaultVal = table.default;
+		if (table.default.type === "literal") {
+			defaultVal = table.default.value;
 		} else {
 			defaultVal = this.#followReference(table.default, table.scope, origin, parents);
 			defaultPath = table.default.value;
@@ -785,7 +799,7 @@ export class UserVars {
 		if (!found) {
 			output.output = defaultVal;
 
-			if (typeof table.default !== "string") output.outputPath = output.defaultPath;
+			if (table.default.type !== "literal") output.outputPath = output.defaultPath;
 		}
 
 		return output;

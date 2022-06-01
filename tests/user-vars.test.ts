@@ -1,4 +1,4 @@
-import { UserVars, BasicVar, ListVar, TableVar } from "../src/user-vars";
+import { UserVars } from "../src/user-vars";
 const data = require("./data.json");
 
 let userVars: UserVars;
@@ -333,35 +333,5 @@ describe("getVar", () => {
 		userVars.setVar(data.invalid);
 
 		expect(userVars.getVar("var")).toBe("[NOT IMPLEMENTED]");
-	});
-});
-
-describe("getPath", () => {
-	describe("global scope", () => {
-		test("Traverse up to global", () => {
-			expect(userVars.getPath("../var", "scope")).toBe("var");
-		});
-
-		test("Never leave global", () => {
-			expect(userVars.getPath("var", "global")).toBe("var");
-		});
-
-		test("No scope argument", () => {
-			expect(userVars.getPath("var")).toBe("var");
-		});
-	});
-
-	test("Scope and name", () => {
-		expect(userVars.getPath("var", "scope")).toBe("scope.var");
-	});
-
-	test("Sibling scope", () => {
-		expect(userVars.getPath("../scope2.var", "scope")).toBe(
-			"scope2.var"
-		);
-	});
-
-	test("Up to global then back to scope", () => {
-		expect(userVars.getPath("../scope.var", "scope")).toBe("scope.var");
 	});
 });
