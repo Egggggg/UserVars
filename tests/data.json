@@ -2,13 +2,19 @@
 	"basicGlobalLiteral": {
 		"name": "nice",
 		"scope": "global",
-		"value": "cool",
+		"value": {
+		    "value": "cool",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicGlobalLiteral2": {
 		"name": "nice",
 		"scope": "global",
-		"value": "epic",
+		"value": {
+		    "value": "epic",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicGlobalVar": {
@@ -32,13 +38,19 @@
 	"basicScopedLiteral": {
 		"name": "nice",
 		"scope": "scope1",
-		"value": "epic",
+		"value": {
+		    "value": "epic",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicScopedLiteral2": {
 		"name": "nice",
 		"scope": "scope1",
-		"value": "impossible",
+		"value": {
+		    "value": "impossible",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicScopedVar": {
@@ -104,23 +116,50 @@
 	"listLiteral": {
 		"name": "list",
 		"scope": "global",
-		"value": ["nice", "nice2", "nice3", "nice4", "cool (nice)"],
+		"value": [
+			{
+				"value": "nice",
+				"type": "literal"
+			},
+			{
+				"value": "nice2",
+				"type": "literal"
+			},
+			{
+				"value": "nice3",
+				"type": "literal"
+			},
+			{
+				"value": "nice4",
+				"type": "literal"
+			},
+			{
+				"value": "cool (nice)",
+				"type": "literal"
+			}
+		],
 		"varType": "list"
 	},
 	"listMixed": {
 		"name": "list",
 		"scope": "global",
 		"value": [
-			"nice",
 			{
 				"value": "nice",
-				"reference": true
+				"type": "literal"
+			},
+			{
+				"value": "nice",
+				"type": "reference"
 			},
 			{
 				"value": "scope1.nice",
-				"reference": true
+				"type": "reference"
 			},
-			"yes"
+			{
+				"value": "yes",
+				"type": "literal"
+			}
 		],
 		"varType": "list"
 	},
@@ -206,7 +245,10 @@
 					{
 						"val1": "1",
 						"comparison": "eq",
-						"val2": "1"
+						"val2": {
+						    "value": "1",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -228,7 +270,10 @@
 							"reference": true
 						},
 						"comparison": "eq",
-						"val2": "34"
+						"val2": {
+						    "value": "34",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -241,7 +286,10 @@
 							"reference": true
 						},
 						"comparison": "lt",
-						"val2": "34"
+						"val2": {
+						    "value": "34",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -254,7 +302,10 @@
 							"reference": true
 						},
 						"comparison": "gt",
-						"val2": "34"
+						"val2": {
+						    "value": "34",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -277,30 +328,45 @@
 		],
 		"varType": "table",
 		"priority": "first",
-		"default": "default"
+		"default": {
+		    "value": "default",
+		    "type": "literal"
+		}
 	},
 	"basicTableEq": {
 		"name": "var",
 		"scope": "global",
-		"value": "34",
+		"value": {
+		    "value": "34",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicTableLt": {
 		"name": "var",
 		"scope": "global",
-		"value": "0",
+		"value": {
+		    "value": "0",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicTableGt": {
 		"name": "var",
 		"scope": "global",
-		"value": "100",
+		"value": {
+		    "value": "100",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicTableIn": {
 		"name": "var",
 		"scope": "global",
-		"value": "words",
+		"value": {
+		    "value": "words",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"listTableWords": {
@@ -319,7 +385,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": {
+						    "value": "cool",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -329,7 +398,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -339,7 +411,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -358,7 +433,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -368,7 +446,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -378,7 +459,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": {
+						    "value": "cool",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -397,7 +481,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -407,7 +494,10 @@
 					{
 						"val1": "cool",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -429,7 +519,10 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": "cool",
+						"val2": {
+						    "value": "cool",
+						    "type": "literal"
+						},
 						"val2Path": ""
 					}
 				]
@@ -442,7 +535,10 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice",
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						},
 						"val2Path": ""
 					}
 				]
@@ -455,7 +551,10 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice",
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						},
 						"val2Path": ""
 					}
 				]
@@ -478,7 +577,10 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice",
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						},
 						"val2Path": ""
 					}
 				]
@@ -491,7 +593,10 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": "nice",
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						},
 						"val2Path": ""
 					}
 				]
@@ -504,7 +609,10 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": "cool",
+						"val2": {
+						    "value": "cool",
+						    "type": "literal"
+						},
 						"val2Path": ""
 					}
 				]
@@ -527,7 +635,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -537,7 +648,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -556,7 +670,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			},
@@ -569,7 +686,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "nice"
+						"val2": {
+						    "value": "nice",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -588,7 +708,10 @@
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": "cool"
+						"val2": {
+						    "value": "cool",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -612,7 +735,10 @@
 	"basicExpression": {
 		"name": "var",
 		"scope": "global",
-		"value": "30",
+		"value": {
+		    "value": "30",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"expressionReference": {
@@ -637,7 +763,10 @@
 					{
 						"val1": "1",
 						"comparison": "eq",
-						"val2": "1"
+						"val2": {
+						    "value": "1",
+						    "type": "literal"
+						}
 					}
 				]
 			}
@@ -737,7 +866,10 @@
 	"invalid": {
 		"name": "var",
 		"scope": "global",
-		"value": "nice",
+		"value": {
+		    "value": "nice",
+		    "type": "literal"
+		},
 		"varType": "cisab"
 	},
 	"tableInvalidIn": {
@@ -760,7 +892,10 @@
 		],
 		"varType": "table",
 		"priority": "first",
-		"default": "default"
+		"default": {
+		    "value": "default",
+		    "type": "literal"
+		}
 	},
 	"tableFullRefs": {
 		"name": "table",
@@ -809,7 +944,10 @@
 				]
 			}
 		],
-		"default": "cool",
+		"default": {
+		    "value": "cool",
+		    "type": "literal"
+		},
 		"defaultPath": "nice",
 		"priority": "first"
 	},
@@ -827,7 +965,10 @@
 	"basicTable": {
 		"name": "var",
 		"scope": "global",
-		"value": "nice",
+		"value": {
+		    "value": "nice",
+		    "type": "literal"
+		},
 		"varType": "table"
 	},
 	"tableCompareLists": {
@@ -916,7 +1057,10 @@
 			}
 		],
 		"varType": "table",
-		"default": "default",
+		"default": {
+		    "value": "default",
+		    "type": "literal"
+		},
 		"priority": "first"
 	},
 	"listCompare2": {
@@ -939,19 +1083,28 @@
 	"basicTableListLt": {
 		"name": "var",
 		"scope": "global",
-		"value": "10",
+		"value": {
+		    "value": "10",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicTableListGt": {
 		"name": "var",
 		"scope": "global",
-		"value": "0",
+		"value": {
+		    "value": "0",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	},
 	"basicTableListGt2": {
 		"name": "var2",
 		"scope": "global",
-		"value": "10",
+		"value": {
+		    "value": "10",
+		    "type": "literal"
+		},
 		"varType": "basic"
 	}
 }
