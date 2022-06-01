@@ -14,7 +14,7 @@ $ npm install uservars
 
 ## Usage
 
-Examples can be found in [this file](https://github.com/Egggggg/UserVars/blob/main/examples.js). 
+Examples can be found in [this file](https://github.com/Egggggg/UserVars/blob/main/examples.js).
 
 - Examples for literal variables start from the top.
 - Examples for references start with `basicLiteral`.
@@ -113,12 +113,10 @@ Expressions execute `value` using functions from `functions` and variables from 
 References are used wherever you want to refer to another variable from within a variable. They can be used pretty much anywhere a string is accepted in `value` and related fields.
 
 - `value` The path to the referenced variable, relative to the scope of the variable it's a part of.
-- `reference` Just needs to be truthy to distinguish it from invalid data.
 
 ```ts
 {
-    "value": string,
-    "reference": true
+    "value": string
 }
 ```
 

@@ -21,8 +21,7 @@
 		"name": "niceVar",
 		"scope": "global",
 		"value": {
-			"value": "nice",
-			"reference": true
+			"value": "nice"
 		},
 		"varType": "basic"
 	},
@@ -30,8 +29,7 @@
 		"name": "niceVar2",
 		"scope": "global",
 		"value": {
-			"value": "niceVar",
-			"reference": true
+			"value": "niceVar"
 		},
 		"varType": "basic"
 	},
@@ -57,8 +55,7 @@
 		"name": "niceVar",
 		"scope": "scope1",
 		"value": {
-			"value": "nice",
-			"reference": true
+			"value": "nice"
 		},
 		"varType": "basic"
 	},
@@ -66,8 +63,7 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-			"value": "var",
-			"reference": true
+			"value": "var"
 		},
 		"varType": "basic"
 	},
@@ -75,8 +71,7 @@
 		"name": "var1",
 		"scope": "global",
 		"value": {
-			"value": "var2",
-			"reference": true
+			"value": "var2"
 		},
 		"varType": "basic"
 	},
@@ -84,8 +79,7 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-			"value": "var3",
-			"reference": true
+			"value": "var3"
 		},
 		"varType": "basic"
 	},
@@ -93,8 +87,7 @@
 		"name": "var3",
 		"scope": "global",
 		"value": {
-			"value": "var4",
-			"reference": true
+			"value": "var4"
 		},
 		"varType": "basic"
 	},
@@ -102,8 +95,7 @@
 		"name": "var4",
 		"scope": "global",
 		"value": {
-			"value": "var1",
-			"reference": true
+			"value": "var1"
 		},
 		"varType": "basic"
 	},
@@ -145,16 +137,10 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "nice",
-				"type": "literal"
+				"value": "nice"
 			},
 			{
-				"value": "nice",
-				"type": "reference"
-			},
-			{
-				"value": "scope1.nice",
-				"type": "reference"
+				"value": "scope1.nice"
 			},
 			{
 				"value": "yes",
@@ -174,16 +160,13 @@
 		"scope": "chaos",
 		"value": [
 			{
-				"value": "../nice",
-				"reference": true
+				"value": "../nice"
 			},
 			{
-				"value": "../scope1.nice",
-				"reference": true
+				"value": "../scope1.nice"
 			},
 			{
-				"value": "nice",
-				"reference": true
+				"value": "nice"
 			}
 		],
 		"varType": "list"
@@ -195,8 +178,7 @@
 			"nice",
 			"nice cool",
 			{
-				"value": "var2",
-				"reference": true
+				"value": "var2"
 			},
 			"nice yeah cool and good"
 		],
@@ -206,8 +188,7 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-			"value": "list",
-			"reference": true
+			"value": "list"
 		},
 		"varType": "basic"
 	},
@@ -216,8 +197,7 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "no",
-				"reference": true
+				"value": "no"
 			}
 		],
 		"varType": "list"
@@ -228,8 +208,7 @@
 		"value": [
 			"cool and good",
 			{
-				"value": "list",
-				"reference": true
+				"value": "list"
 			},
 			"very cool"
 		],
@@ -266,8 +245,7 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var",
-							"reference": true
+							"value": "var"
 						},
 						"comparison": "eq",
 						"val2": {
@@ -282,8 +260,7 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var",
-							"reference": true
+							"value": "var"
 						},
 						"comparison": "lt",
 						"val2": {
@@ -298,8 +275,7 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var",
-							"reference": true
+							"value": "var"
 						},
 						"comparison": "gt",
 						"val2": {
@@ -314,13 +290,11 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var",
-							"reference": true
+							"value": "var"
 						},
 						"comparison": "in",
 						"val2": {
-							"value": "listOfWords",
-							"reference": true
+							"value": "listOfWords"
 						}
 					}
 				]
@@ -628,8 +602,7 @@
 		"value": [
 			{
 				"output": {
-					"value": "nice",
-					"reference": true
+					"value": "nice"
 				},
 				"conditions": [
 					{
@@ -679,8 +652,7 @@
 			},
 			{
 				"output": {
-					"value": "nice",
-					"reference": true
+					"value": "nice"
 				},
 				"conditions": [
 					{
@@ -719,8 +691,7 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-			"value": "nice",
-			"reference": true
+			"value": "nice"
 		}
 	},
 	"expressionLiteral": {
@@ -748,8 +719,7 @@
 		"varType": "expression",
 		"vars": {
 			"x": {
-				"value": "var",
-				"reference": true
+				"value": "var"
 			}
 		}
 	},
@@ -782,14 +752,12 @@
 		"varType": "expression",
 		"functions": [
 			{
-				"value": "math.function",
-				"reference": true
+				"value": "math.function"
 			}
 		],
 		"vars": {
 			"x": {
-				"value": "var",
-				"reference": true
+				"value": "var"
 			}
 		}
 	},
@@ -807,14 +775,12 @@
 		"functions": [
 			"c(x) = 5 * x",
 			{
-				"value": "math.functions",
-				"reference": true
+				"value": "math.functions"
 			}
 		],
 		"vars": {
 			"x": {
-				"value": "var",
-				"reference": true
+				"value": "var"
 			}
 		}
 	},
@@ -828,8 +794,7 @@
 		"name": "expression",
 		"scope": "global",
 		"value": {
-			"value": "math.expression1",
-			"reference": true
+			"value": "math.expression1"
 		},
 		"varType": "expression",
 		"vars": {
@@ -855,8 +820,7 @@
 		"varType": "expression",
 		"functions": [
 			{
-				"value": "no",
-				"reference": true
+				"value": "no"
 			}
 		],
 		"vars": {
@@ -883,8 +847,7 @@
 						"val1": "cool",
 						"comparison": "in",
 						"val2": {
-							"value": "list",
-							"reference": true
+							"value": "list"
 						}
 					}
 				]
@@ -903,14 +866,12 @@
 		"value": [
 			{
 				"output": {
-					"value": "scope1.nice",
-					"reference": true
+					"value": "scope1.nice"
 				},
 				"conditions": [
 					{
 						"val1": {
-							"value": "nice",
-							"reference": true
+							"value": "nice"
 						},
 						"comparison": "eq",
 						"val2": "not cool"
@@ -921,8 +882,7 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-			"value": "nice",
-			"reference": true
+			"value": "nice"
 		}
 	},
 	"fullTableRefOutput": {
@@ -956,8 +916,7 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "scope1",
-				"reference": true
+				"value": "scope1"
 			}
 		],
 		"varType": "list"
@@ -980,13 +939,11 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list",
-							"reference": true
+							"value": "list"
 						},
 						"comparison": "eq",
 						"val2": {
-							"value": "list2",
-							"reference": true
+							"value": "list2"
 						}
 					}
 				]
@@ -996,13 +953,11 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list",
-							"reference": true
+							"value": "list"
 						},
 						"comparison": "lt",
 						"val2": {
-							"value": "var",
-							"reference": true
+							"value": "var"
 						}
 					}
 				]
@@ -1012,13 +967,11 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list",
-							"reference": true
+							"value": "list"
 						},
 						"comparison": "gt",
 						"val2": {
-							"value": "var",
-							"reference": true
+							"value": "var"
 						}
 					}
 				]
@@ -1028,13 +981,11 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var2",
-							"reference": true
+							"value": "var2"
 						},
 						"comparison": "gt",
 						"val2": {
-							"value": "list",
-							"reference": true
+							"value": "list"
 						}
 					}
 				]
@@ -1044,13 +995,11 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "sublist",
-							"reference": true
+							"value": "sublist"
 						},
 						"comparison": "in",
 						"val2": {
-							"value": "list",
-							"reference": true
+							"value": "list"
 						}
 					}
 				]
@@ -1068,8 +1017,7 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "list",
-				"reference": true
+				"value": "list"
 			}
 		],
 		"varType": "list"

@@ -41,23 +41,25 @@ export interface StringLiteral extends Value {
 
 /**
  * Reference to a variable, used in lists and tables
- * varType is "reference"
  */
 export interface Reference extends Value {
 	value: string;
-	type: string; // "reference"
 }
 
 /**
  * Inline expression
  */
-export interface InlineExpression extends Value {
+export interface InlineExpression {
 	value: string;
 	vars: {
 		[name: string]: Value
 	}
-	type: string; // "expression"
 }
+
+/**
+ * Inline expression
+ */
+export type Value = Reference | string | InlineExpression;
 
 /**
  * Should evaluate to an array of BasicVars
@@ -164,11 +166,23 @@ export interface Deps {
 }
 
 export interface Cache {
-	[path: string]: Literal | TableData
+	[path: string]: Literal | TableData;
 }
 
 export interface Changed {
-	[path: string]: boolean
+	[path: string]: boolean;
+}
+
+export interface AllVars {
+	[name: string]: Literal | TableData | OutputScope;
+}
+
+export interface OutputScope {
+	[name: string]: Literal | TableData;
+}
+
+export interface AllVarsFlat {
+	[name: string]: Literal | TableData;
 }
 
 /**
@@ -198,6 +212,65 @@ function parseLtGt(arg1: Literal, arg2: Literal) {
 	}
 
 	return {num1, num2};
+}
+
+/**
+ * Normalizes a path relative to its scope.
+ * Only takes into account "../" and the first and last period delimited values
+ * Usually not needed if scope is global.
+ * @param {string} path             - The path to normalize
+ * @param {string} [scope="global"] - The scope the path is relative to
+ * @returns {string} The normalized path
+ */
+function normalizePath(path: string, scope: string = "global"): string {
+	let up = false;
+
+	if (path.startsWith("../") && scope !== "global") {
+		up = true;
+		path = path.replace("../", "");
+	}
+
+	if (path.startsWith("global.")) {
+		path = path.replace("global.", "");
+	}
+
+	// remove multiple periods in a row
+	path = path.replace(/\.+/g, ".");
+
+	let split = path.split(".");
+	const multipleParts = split.length > 1;
+
+	split = [split[0], split[split.length - 1]];
+
+	if ((scope === "global" || up) && !multipleParts) {
+		return split[0];
+	}
+
+	if (!multipleParts) {
+		return `${scope}.${split[0]}`;
+	}
+
+	return split.join(".");
+}
+
+/**
+ * Gets the path to a variable from its scope and name
+ * @param {string} name             - The name of the variable
+ * @param {string} [scope="global"] - The scope of the variable
+ * @returns {string} The path to the variable
+ */
+function getPath(name: string, scope: string = "global"): string {
+	if (scope !== "global") {
+		// return to global
+		if (name.startsWith("../")) {
+			name = name.replace("../", "");
+			   return name;
+		}
+
+		return `${scope}.${name}`;
+	} else {
+		return name;
+	}
 }
 
 const comparisons = {
@@ -310,7 +383,7 @@ export class UserVars {
             if (!this.vars[value.name] || isVar(this.vars[value.name])) {
                 this.vars[value.name] = {...value};
 
-				this.#setChanged(this.getPath(value.name, value.scope));
+				this.#setChanged(getPath(value.name, value.scope));
 
                 return true;
             }
@@ -318,7 +391,7 @@ export class UserVars {
 			if (forceOverwrite) {
 				this.vars[value.name] = {...value};
 
-				this.#setChanged(this.getPath(value.name, value.scope));
+				this.#setChanged(getPath(value.name, value.scope));
 
 				return true;
 			}
@@ -330,7 +403,7 @@ export class UserVars {
 				if (!(<Scope>this.vars[value.scope])[value.name]) {
 					(<Scope>this.vars[value.scope])[value.name] = {...value};
 
-					this.#setChanged(this.getPath(value.name, value.scope));
+					this.#setChanged(getPath(value.name, value.scope));
 
 					return true;
 				}
@@ -364,10 +437,10 @@ export class UserVars {
      * @param {string}  [origin=path] - The original var's path for circular dependency detection
      * @returns {Literal} The evaluated value
      */
-    #evaluate(value: Var, origin?: Set<string>, recursed: boolean = false, parents: string[] = []): Literal {
+    #evaluate(value: Var, origin?: Set<string>, parents: string[] = []): Literal {
 		if (!parents) parents = [];
 		
-		const thisPath = this.getPath(value.name, value.scope);
+		const thisPath = getPath(value.name, value.scope);
 
 		if (!this.deps[thisPath]) this.deps[thisPath] = new Set();
 
@@ -379,13 +452,21 @@ export class UserVars {
 
 		parents = [...parents, thisPath];
 
-        if (recursed && origin === thisPath) {
-            return "[CIRCULAR DEPENDENCY]";
-        }
+		if (!origin) {
+			origin = new Set<string>()
+		} else {
+			origin = new Set<string>(origin);
+		}
+
+		if (!origin.has(thisPath)) {
+			origin.add(thisPath);
+		} else {
+			return "[CIRCULAR DEPENDENCY]";
+		}
 
         if (value.varType === "basic") {
-			if ("type" in value.value && !["literal", "reference", "expression"].includes(value.value.type)) {
-				throw new TypeError(`Basic variable value must be of type Value (${value.scope}.${value.name})`);
+			if (typeof value.value !== "string" && typeof (<Reference>value.value).value !== "string") {
+				throw new TypeError(`Basic variable value must be of type string | Reference (${value.scope}.${value.name})`);
 			}
 
             const basic = value as BasicVar;
@@ -398,18 +479,18 @@ export class UserVars {
         } else if (value.varType === "list") {
 			if (
 				!(value.value instanceof Array) 
-				|| (<Array<Value | TableRow>>value.value).filter(i => {
-					!("type" in i) || !["literal", "reference", "expression"].includes(i.type)
+				|| (<Array<string | Value | TableRow>>value.value).filter(i => {
+					typeof i !== "string" && typeof (<Reference>i).value !== "string"
 				}).length > 0) throw new TypeError(`List variable value must be of type string[] (${value.scope}.${value.name})`);
 
 			const output: string[] = [];
 			const list = value as ListVar;
 
 			list.value.forEach(e => {
-				if (e.type === "literal") {
-					output.push(e.value);
+				if (typeof e === "string") {
+					output.push(e);
 				} else {
-					const current = this.#followReference(e, list.scope, <Set<string>>origin, parents);
+					const current = this.#followReference(e.value, list.scope, <Set<string>>origin, parents);
 
 					if (current instanceof Array) {
 						output.push(...current);
@@ -424,12 +505,12 @@ export class UserVars {
 			return output;
 		} else if (value.varType === "table") {
 			if (!("priority" in value) || !["first", "last"].includes((<TableVar>value).priority)) throw new TypeError(`Table "variable" priority field must be either "first" or "last" (${value.scope}.${value.name}))`);
-			if (!("default" in value) || !["literal", "reference", "expression"].includes((<TableVar>value).default.type)) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
+			if (!("default" in value) || (typeof (<TableVar>value).default !== "string" && typeof (<Reference>(<TableVar>value).default).value !== "string")) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
 			if (
 				!(value.value instanceof Array) 
-				|| (<Array<Value | TableRow>>value.value).filter(i => {"type" in i}).length > 0)  {
-					throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
-				}
+				|| (<Array<Value | TableRow>>value.value).filter(i => {
+					typeof i === "string" || (<Reference>i).value === "string"
+				}).length > 0) throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
 
 			const table = value as TableVar;
 
@@ -483,8 +564,11 @@ export class UserVars {
 		} else if (value.varType === "expression") {
 			if (
 				!("vars" in value) || 
+					Object.keys((<ExpressionVar>value).vars).filter(i => {
+						typeof i !== "string"
+					}).length > 0 ||
 					Object.values((<ExpressionVar>value).vars).filter(i => {
-						!("type" in i) || !["literal", "reference", "expression"].includes(i.type) 
+						typeof i !== "string" && typeof (<Reference>i).value !== "string"
 					}).length > 0
 				) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
 
@@ -492,7 +576,7 @@ export class UserVars {
 				"functions" in value && (
 					!((<ExpressionVar>value).functions instanceof Array) ||
 					(<Value[]>(<ExpressionVar>value).functions).filter(i => {
-						!("type" in i) || !["literal", "reference", "expression"].includes(i.type)
+						typeof i !== "string" && typeof (<Reference>i).value !== "string"
 					}).length > 0
 				)
 			) throw new TypeError(`Expression "functions" field must be of type Value[] (${value.scope}.${value.name})`);
@@ -544,7 +628,7 @@ export class UserVars {
 			let parsed = this.parser.parse(toParse)
 
 			let vars = parsed.variables();
-			let input: {[name: string]: string} = {};
+			let input: {[name: string]: string | number[]} = {};
 
 			// evaluate all variables to be passed into parsed.evaluate()
 			for (let i of Object.keys(expr.vars)) {
@@ -564,11 +648,18 @@ export class UserVars {
 				if (typeof followed === "string") {
 					input[i] = followed;
 				} else {
-					throw new Error("List variables cannot be used in expressions")
+					input[i] = followed.map(e => parseFloat(e));
 				}
 			}
 
-			return parsed.evaluate(input).toString();
+			// @ts-ignore
+			const evaluated = parsed.evaluate(input).toString();
+
+			if (evaluated.match(/,/g)) {
+				return evaluated.split(",");
+			}
+
+			return evaluated;
 		}
 
         return "[NOT IMPLEMENTED]";
@@ -583,8 +674,8 @@ export class UserVars {
 	 * @return {boolean} Whether the condition passes
 	 */
 	#evalCondition(cond: Condition, scope: string, origin: Set<string>, parents: string[], full: boolean): boolean | {output: boolean, val1: Literal, val2: Literal} {
-		let val1: Literal;
-		let val2: Literal;
+		let val1;
+		let val2;
 
 		if (cond.val1.type === "literal") {
 			val1 = cond.val1.value;
@@ -640,8 +731,11 @@ export class UserVars {
 			priority: table.priority
 		} as TableData;
 
-		const origin = this.getPath(table.name, table.scope);
-		const parents = [origin];
+		const thisPath = getPath(table.name, table.scope);
+		const origin = new Set<string>()
+		origin.add(thisPath);
+
+		const parents = [thisPath];
 		let found = false;
 
 		for (let i = 0; i < table.value.length; i++) {
@@ -712,32 +806,12 @@ export class UserVars {
 	}
 
     /**
-     * Gets the path to a variable from its scope and name
-     * @param {string} name             - The name of the variable
-     * @param {string} [scope="global"] - The scope of the variable
-     * @returns {string} The path to the variable
-     */
-    getPath(name: string, scope: string = "global"): string {
-        if (scope !== "global") {
-            // return to global
-            if (name.startsWith("../")) {
-                name = name.replace("../", "");
-               	return name;
-            }
-
-            return `${scope}.${name}`;
-        } else {
-            return name;
-        }
-    }
-
-    /**
      * Gets a Var from a string path
      * @param {string} path - The path to the variable
      * @returns {Var} The Var found at scope.name
      */
     getRawVar(path: string): Var {
-		const result = get(this.vars, this.normalizePath(path), null);
+		const result = get(this.vars, normalizePath(path), null);
 
 		if (isVar(result)) {
 			return result;
@@ -751,7 +825,7 @@ export class UserVars {
     /**
      * Gets a Var from a string path
      * @param {string}  path - The path to the variable
-	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return 
+	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return TableData
      * @returns {Var} The Var found at the path
      */
 	getVar(path: string, full?: boolean): Literal | TableData {
@@ -774,7 +848,7 @@ export class UserVars {
 			return this.cache[path];
 		}
 
-		const value = this.#evaluate(variable, undefined, false);
+		const value = this.#evaluate(variable, undefined);
 
 		this.cache[path] = value;
 		this.changed[path] = false;
@@ -782,64 +856,94 @@ export class UserVars {
 		return value;
 	}
 
-    /**
-     * Normalizes a path relative to its scope.
-     * Only takes into account "../" and the first and last period delimited values
-     * Usually not needed if scope is global.
-     * @param {string} path             - The path to normalize
-     * @param {string} [scope="global"] - The scope the path is relative to
-     * @returns {string} The normalized path
-     */
-    normalizePath(path: string, scope: string = "global"): string {
-        let up = false;
+	/**
+	 * Returns the values of all variables, structured, optionally with full TableData
+	 * @param {boolean} flat - Whether the output data should be a flat mapping of paths to literals, or scopes should be entries containing values
+	 * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return TableData
+	 */
+	getAllVars(flat?: boolean, full?: boolean): AllVars | AllVarsFlat {
+		if (flat) {
+			const output: AllVarsFlat = {};
 
-        if (path.startsWith("../") && scope !== "global") {
-            up = true;
-            path = path.replace("../", "");
-        }
+			for (let i of Object.keys(this.vars)) {
+				let current = this.vars[i];
 
-		if (path.startsWith("global.")) {
-			path = path.replace("global.", "");
+				if (isVar(current)) {
+					output[i] = this.getVar(i, full);
+				} else {
+					for (let e of Object.keys(current)) {
+						output[`${i}.${e}`] = this.getVar(`${i}.${e}`, full);
+					}
+				}
+			}
+
+			return output;
+		} else {
+			const output: AllVars = {};
+
+			for (let i of Object.keys(this.vars)) {
+				let current = this.vars[i];
+
+				if (isVar(current)) {
+					output[i] = this.getVar(i, full);
+				} else {
+					output[i] = {} as OutputScope;
+
+					for (let e of Object.keys(current)) {
+						// @ts-ignore
+						output[i][e] = this.getVar(`${i}.${e}`, full);
+					}
+				}
+			}
+
+			return output;
 		}
 	}
 
 	#followReference(ref: Value, scope: string, origin: Set<string>, parents: string[]): Literal {
-		if (ref.type === "expression") {
+		if (typeof ref !== "string" && "vars" in ref) {
 			let parsed = this.parser.parse(ref.value);
 			let vars = parsed.variables();
 			let input: {[name: string]: string | number[]} = {};
 
-			for (let i of Object.keys((<InlineExpression>ref).vars)) {
+			for (let i of Object.keys(ref.vars)) {
 				if (!vars.includes(i)) continue;
 
-				const current = (<InlineExpression>ref).vars[i];
+				const current = ref.vars[i];
 
-				if (current.type === "literal") {
-					input[i] = current.value;
+				if (typeof current === "string") {
+					input[i] = current;
 					continue;
 				}
 
 				const path = normalizePath(current.value, scope);
-				const followed = this.#followReference({ value: path, type: "reference" }, scope, origin, parents);
+				const followed = this.#followReference(path, scope, origin, parents);
 
-        split = [split[0], split[split.length - 1]];
+				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
 
-        if ((scope === "global" || up) && !multipleParts) {
-            return split[0];
-        }
+				if (typeof followed === "string") {
+					input[i] = followed;
+				} else {
+					input[i] = followed.map(e => parseFloat(e));
+				}
+			}
 
-        if (!multipleParts) {
-            return `${scope}.${split[0]}`;
-        }
+			// @ts-ignore
+			const evaluated = parsed.evaluate(input).toString();
 
-        return split.join(".");
-    }
+			if (evaluated.match(/,/g)) {
+				return evaluated.split(",");
+			}
 
 			return evaluated;
 		}
+		
+		if (typeof ref !== "string") {
+			ref = ref.value;
+		}
 
 		try {
-			const path = normalizePath(ref.value, scope);
+			const path = normalizePath(ref, scope);
 			const value = this.#evaluate(this.getRawVar(path), origin, parents);
 
 			this.cache[path] = value;
