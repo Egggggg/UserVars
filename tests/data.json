@@ -21,7 +21,8 @@
 		"name": "niceVar",
 		"scope": "global",
 		"value": {
-			"value": "nice"
+			"value": "e",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -29,7 +30,8 @@
 		"name": "niceVar2",
 		"scope": "global",
 		"value": {
-			"value": "niceVar"
+			"value": "r",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -55,7 +57,8 @@
 		"name": "niceVar",
 		"scope": "scope1",
 		"value": {
-			"value": "nice"
+			"value": "e",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -63,7 +66,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-			"value": "var"
+			"value": "r",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -71,7 +75,8 @@
 		"name": "var1",
 		"scope": "global",
 		"value": {
-			"value": "var2"
+			"value": "2",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -79,7 +84,8 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-			"value": "var3"
+			"value": "3",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -87,7 +93,8 @@
 		"name": "var3",
 		"scope": "global",
 		"value": {
-			"value": "var4"
+			"value": "4",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -95,7 +102,8 @@
 		"name": "var4",
 		"scope": "global",
 		"value": {
-			"value": "var1"
+			"value": "1",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -137,10 +145,16 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "nice"
+				"value": "nice",
+				"type": "literal"
 			},
 			{
-				"value": "scope1.nice"
+				"value": "nice",
+				"type": "reference"
+			},
+			{
+				"value": "scope1.nice",
+				"type": "reference"
 			},
 			{
 				"value": "yes",
@@ -160,13 +174,16 @@
 		"scope": "chaos",
 		"value": [
 			{
-				"value": "../nice"
+				"value": "e",
+				"type": "reference"
 			},
 			{
-				"value": "../scope1.nice"
+				"value": "e",
+				"type": "reference"
 			},
 			{
-				"value": "nice"
+				"value": "e",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -178,7 +195,8 @@
 			"nice",
 			"nice cool",
 			{
-				"value": "var2"
+				"value": "2",
+				"type": "reference"
 			},
 			"nice yeah cool and good"
 		],
@@ -188,7 +206,8 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-			"value": "list"
+			"value": "t",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -197,7 +216,8 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "no"
+				"value": "o",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -208,7 +228,8 @@
 		"value": [
 			"cool and good",
 			{
-				"value": "list"
+				"value": "t",
+				"type": "reference"
 			},
 			"very cool"
 		],
@@ -245,7 +266,8 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "r",
+							"type": "reference"
 						},
 						"comparison": "eq",
 						"val2": {
@@ -260,7 +282,8 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "r",
+							"type": "reference"
 						},
 						"comparison": "lt",
 						"val2": {
@@ -275,7 +298,8 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "r",
+							"type": "reference"
 						},
 						"comparison": "gt",
 						"val2": {
@@ -290,11 +314,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "r",
+							"type": "reference"
 						},
 						"comparison": "in",
 						"val2": {
-							"value": "listOfWords"
+							"value": "s",
+							"type": "reference"
 						}
 					}
 				]
@@ -602,7 +628,8 @@
 		"value": [
 			{
 				"output": {
-					"value": "nice"
+					"value": "e",
+					"type": "reference"
 				},
 				"conditions": [
 					{
@@ -652,7 +679,8 @@
 			},
 			{
 				"output": {
-					"value": "nice"
+					"value": "e",
+					"type": "reference"
 				},
 				"conditions": [
 					{
@@ -691,7 +719,8 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-			"value": "nice"
+			"value": "e",
+			"type": "reference"
 		}
 	},
 	"expressionLiteral": {
@@ -719,7 +748,8 @@
 		"varType": "expression",
 		"vars": {
 			"x": {
-				"value": "var"
+				"value": "r",
+				"type": "reference"
 			}
 		}
 	},
@@ -752,12 +782,14 @@
 		"varType": "expression",
 		"functions": [
 			{
-				"value": "math.function"
+				"value": "n",
+				"type": "reference"
 			}
 		],
 		"vars": {
 			"x": {
-				"value": "var"
+				"value": "r",
+				"type": "reference"
 			}
 		}
 	},
@@ -775,12 +807,14 @@
 		"functions": [
 			"c(x) = 5 * x",
 			{
-				"value": "math.functions"
+				"value": "s",
+				"type": "reference"
 			}
 		],
 		"vars": {
 			"x": {
-				"value": "var"
+				"value": "r",
+				"type": "reference"
 			}
 		}
 	},
@@ -794,7 +828,8 @@
 		"name": "expression",
 		"scope": "global",
 		"value": {
-			"value": "math.expression1"
+			"value": "1",
+			"type": "reference"
 		},
 		"varType": "expression",
 		"vars": {
@@ -820,7 +855,8 @@
 		"varType": "expression",
 		"functions": [
 			{
-				"value": "no"
+				"value": "o",
+				"type": "reference"
 			}
 		],
 		"vars": {
@@ -847,7 +883,8 @@
 						"val1": "cool",
 						"comparison": "in",
 						"val2": {
-							"value": "list"
+							"value": "t",
+							"type": "reference"
 						}
 					}
 				]
@@ -866,12 +903,14 @@
 		"value": [
 			{
 				"output": {
-					"value": "scope1.nice"
+					"value": "e",
+					"type": "reference"
 				},
 				"conditions": [
 					{
 						"val1": {
-							"value": "nice"
+							"value": "e",
+							"type": "reference"
 						},
 						"comparison": "eq",
 						"val2": "not cool"
@@ -882,7 +921,8 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-			"value": "nice"
+			"value": "e",
+			"type": "reference"
 		}
 	},
 	"fullTableRefOutput": {
@@ -916,7 +956,8 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "scope1"
+				"value": "1",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -939,11 +980,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list"
+							"value": "t",
+							"type": "reference"
 						},
 						"comparison": "eq",
 						"val2": {
-							"value": "list2"
+							"value": "2",
+							"type": "reference"
 						}
 					}
 				]
@@ -953,11 +996,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list"
+							"value": "t",
+							"type": "reference"
 						},
 						"comparison": "lt",
 						"val2": {
-							"value": "var"
+							"value": "r",
+							"type": "reference"
 						}
 					}
 				]
@@ -967,11 +1012,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list"
+							"value": "t",
+							"type": "reference"
 						},
 						"comparison": "gt",
 						"val2": {
-							"value": "var"
+							"value": "r",
+							"type": "reference"
 						}
 					}
 				]
@@ -981,11 +1028,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var2"
+							"value": "2",
+							"type": "reference"
 						},
 						"comparison": "gt",
 						"val2": {
-							"value": "list"
+							"value": "t",
+							"type": "reference"
 						}
 					}
 				]
@@ -995,11 +1044,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "sublist"
+							"value": "t",
+							"type": "reference"
 						},
 						"comparison": "in",
 						"val2": {
-							"value": "list"
+							"value": "t",
+							"type": "reference"
 						}
 					}
 				]
@@ -1017,7 +1068,8 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "list"
+				"value": "t",
+				"type": "reference"
 			}
 		],
 		"varType": "list"

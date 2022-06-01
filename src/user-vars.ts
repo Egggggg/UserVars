@@ -44,22 +44,19 @@ export interface StringLiteral extends Value {
  */
 export interface Reference extends Value {
 	value: string;
+	type: string; // "reference"
 }
 
 /**
  * Inline expression
  */
-export interface InlineExpression {
+export interface InlineExpression extends Value {
 	value: string;
 	vars: {
 		[name: string]: Value
 	}
+	type: string; // "expression"
 }
-
-/**
- * Inline expression
- */
-export type Value = Reference | string | InlineExpression;
 
 /**
  * Should evaluate to an array of BasicVars
@@ -465,8 +462,8 @@ export class UserVars {
 		}
 
         if (value.varType === "basic") {
-			if (typeof value.value !== "string" && typeof (<Reference>value.value).value !== "string") {
-				throw new TypeError(`Basic variable value must be of type string | Reference (${value.scope}.${value.name})`);
+			if ("type" in value.value && !["literal", "reference", "expression"].includes(value.value.type)) {
+				throw new TypeError(`Basic variable value must be of type Value (${value.scope}.${value.name})`);
 			}
 
             const basic = value as BasicVar;
@@ -479,18 +476,18 @@ export class UserVars {
         } else if (value.varType === "list") {
 			if (
 				!(value.value instanceof Array) 
-				|| (<Array<string | Value | TableRow>>value.value).filter(i => {
-					typeof i !== "string" && typeof (<Reference>i).value !== "string"
+				|| (<Array<Value | TableRow>>value.value).filter(i => {
+					!("type" in i) || !["literal", "reference", "expression"].includes(i.type)
 				}).length > 0) throw new TypeError(`List variable value must be of type string[] (${value.scope}.${value.name})`);
 
 			const output: string[] = [];
 			const list = value as ListVar;
 
 			list.value.forEach(e => {
-				if (typeof e === "string") {
-					output.push(e);
+				if (e.type === "literal") {
+					output.push(e.value);
 				} else {
-					const current = this.#followReference(e.value, list.scope, <Set<string>>origin, parents);
+					const current = this.#followReference(e, list.scope, <Set<string>>origin, parents);
 
 					if (current instanceof Array) {
 						output.push(...current);
@@ -505,12 +502,12 @@ export class UserVars {
 			return output;
 		} else if (value.varType === "table") {
 			if (!("priority" in value) || !["first", "last"].includes((<TableVar>value).priority)) throw new TypeError(`Table "variable" priority field must be either "first" or "last" (${value.scope}.${value.name}))`);
-			if (!("default" in value) || (typeof (<TableVar>value).default !== "string" && typeof (<Reference>(<TableVar>value).default).value !== "string")) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
+			if (!("default" in value) || !["literal", "reference", "expression"].includes((<TableVar>value).default.type)) throw new TypeError(`Table "default" field must be of type Value (${value.scope}.${value.name})`);
 			if (
 				!(value.value instanceof Array) 
-				|| (<Array<Value | TableRow>>value.value).filter(i => {
-					typeof i === "string" || (<Reference>i).value === "string"
-				}).length > 0) throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
+				|| (<Array<Value | TableRow>>value.value).filter(i => {"type" in i}).length > 0)  {
+					throw new TypeError(`Table variable values must be of type TableRow[] (${value.scope}.${value.name})`);
+				}
 
 			const table = value as TableVar;
 
@@ -564,11 +561,8 @@ export class UserVars {
 		} else if (value.varType === "expression") {
 			if (
 				!("vars" in value) || 
-					Object.keys((<ExpressionVar>value).vars).filter(i => {
-						typeof i !== "string"
-					}).length > 0 ||
 					Object.values((<ExpressionVar>value).vars).filter(i => {
-						typeof i !== "string" && typeof (<Reference>i).value !== "string"
+						!("type" in i) || !["literal", "reference", "expression"].includes(i.type) 
 					}).length > 0
 				) throw new TypeError(`Expression "vars" field must be of type {[name: string]: Value} (${value.scope}.${value.name})`);
 
@@ -576,7 +570,7 @@ export class UserVars {
 				"functions" in value && (
 					!((<ExpressionVar>value).functions instanceof Array) ||
 					(<Value[]>(<ExpressionVar>value).functions).filter(i => {
-						typeof i !== "string" && typeof (<Reference>i).value !== "string"
+						!("type" in i) || !["literal", "reference", "expression"].includes(i.type)
 					}).length > 0
 				)
 			) throw new TypeError(`Expression "functions" field must be of type Value[] (${value.scope}.${value.name})`);
@@ -674,8 +668,8 @@ export class UserVars {
 	 * @return {boolean} Whether the condition passes
 	 */
 	#evalCondition(cond: Condition, scope: string, origin: Set<string>, parents: string[], full: boolean): boolean | {output: boolean, val1: Literal, val2: Literal} {
-		let val1;
-		let val2;
+		let val1: Literal;
+		let val2: Literal;
 
 		if (cond.val1.type === "literal") {
 			val1 = cond.val1.value;
@@ -901,23 +895,23 @@ export class UserVars {
 	}
 
 	#followReference(ref: Value, scope: string, origin: Set<string>, parents: string[]): Literal {
-		if (typeof ref !== "string" && "vars" in ref) {
+		if (ref.type === "expression") {
 			let parsed = this.parser.parse(ref.value);
 			let vars = parsed.variables();
 			let input: {[name: string]: string | number[]} = {};
 
-			for (let i of Object.keys(ref.vars)) {
+			for (let i of Object.keys((<InlineExpression>ref).vars)) {
 				if (!vars.includes(i)) continue;
 
-				const current = ref.vars[i];
+				const current = (<InlineExpression>ref).vars[i];
 
-				if (typeof current === "string") {
-					input[i] = current;
+				if (current.type === "literal") {
+					input[i] = current.value;
 					continue;
 				}
 
 				const path = normalizePath(current.value, scope);
-				const followed = this.#followReference(path, scope, origin, parents);
+				const followed = this.#followReference({ value: path, type: "reference" }, scope, origin, parents);
 
 				if (followed === "[MISSING REFERENCE]") return `[MISSING ${current}]`;
 
@@ -937,13 +931,9 @@ export class UserVars {
 
 			return evaluated;
 		}
-		
-		if (typeof ref !== "string") {
-			ref = ref.value;
-		}
 
 		try {
-			const path = normalizePath(ref, scope);
+			const path = normalizePath(ref.value, scope);
 			const value = this.#evaluate(this.getRawVar(path), origin, parents);
 
 			this.cache[path] = value;
