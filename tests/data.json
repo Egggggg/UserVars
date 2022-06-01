@@ -3,8 +3,8 @@
 		"name": "nice",
 		"scope": "global",
 		"value": {
-		    "value": "cool",
-		    "type": "literal"
+			"value": "cool",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -12,8 +12,8 @@
 		"name": "nice",
 		"scope": "global",
 		"value": {
-		    "value": "epic",
-		    "type": "literal"
+			"value": "epic",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -21,7 +21,8 @@
 		"name": "niceVar",
 		"scope": "global",
 		"value": {
-			"value": "nice"
+			"value": "nice",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -29,7 +30,8 @@
 		"name": "niceVar2",
 		"scope": "global",
 		"value": {
-			"value": "niceVar"
+			"value": "niceVar",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -37,8 +39,8 @@
 		"name": "nice",
 		"scope": "scope1",
 		"value": {
-		    "value": "epic",
-		    "type": "literal"
+			"value": "epic",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -46,8 +48,8 @@
 		"name": "nice",
 		"scope": "scope1",
 		"value": {
-		    "value": "impossible",
-		    "type": "literal"
+			"value": "impossible",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -55,7 +57,8 @@
 		"name": "niceVar",
 		"scope": "scope1",
 		"value": {
-			"value": "nice"
+			"value": "nice",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -63,7 +66,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-			"value": "var"
+			"value": "var",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -71,7 +75,8 @@
 		"name": "var1",
 		"scope": "global",
 		"value": {
-			"value": "var2"
+			"value": "var2",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -79,7 +84,8 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-			"value": "var3"
+			"value": "var3",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -87,7 +93,8 @@
 		"name": "var3",
 		"scope": "global",
 		"value": {
-			"value": "var4"
+			"value": "var4",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -95,14 +102,18 @@
 		"name": "var4",
 		"scope": "global",
 		"value": {
-			"value": "var1"
+			"value": "var1",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
 	"basicScopeNice": {
 		"name": "cool",
 		"scope": "nice",
-		"value": "yeah !",
+		"value": {
+			"value": "yeah !",
+			"type": "literal"
+		},
 		"varType": "basic"
 	},
 	"listLiteral": {
@@ -137,10 +148,16 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "nice"
+				"value": "nice",
+				"type": "literal"
 			},
 			{
-				"value": "scope1.nice"
+				"value": "nice",
+				"type": "reference"
+			},
+			{
+				"value": "scope1.nice",
+				"type": "reference"
 			},
 			{
 				"value": "yes",
@@ -166,7 +183,8 @@
 				"value": "../scope1.nice"
 			},
 			{
-				"value": "nice"
+				"value": "nice",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -178,7 +196,8 @@
 			"nice",
 			"nice cool",
 			{
-				"value": "var2"
+				"value": "var2",
+				"type": "reference"
 			},
 			"nice yeah cool and good"
 		],
@@ -188,7 +207,8 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-			"value": "list"
+			"value": "list",
+			"type": "reference"
 		},
 		"varType": "basic"
 	},
@@ -197,7 +217,8 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "no"
+				"value": "no",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -208,7 +229,8 @@
 		"value": [
 			"cool and good",
 			{
-				"value": "list"
+				"value": "list",
+				"type": "reference"
 			},
 			"very cool"
 		],
@@ -225,8 +247,8 @@
 						"val1": "1",
 						"comparison": "eq",
 						"val2": {
-						    "value": "1",
-						    "type": "literal"
+							"value": "1",
+							"type": "literal"
 						}
 					}
 				]
@@ -245,12 +267,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "var",
+							"type": "reference"
 						},
 						"comparison": "eq",
 						"val2": {
-						    "value": "34",
-						    "type": "literal"
+							"value": "34",
+							"type": "literal"
 						}
 					}
 				]
@@ -260,12 +283,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "var",
+							"type": "reference"
 						},
 						"comparison": "lt",
 						"val2": {
-						    "value": "34",
-						    "type": "literal"
+							"value": "34",
+							"type": "literal"
 						}
 					}
 				]
@@ -275,12 +299,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "var",
+							"type": "reference"
 						},
 						"comparison": "gt",
 						"val2": {
-						    "value": "34",
-						    "type": "literal"
+							"value": "34",
+							"type": "literal"
 						}
 					}
 				]
@@ -290,11 +315,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var"
+							"value": "var",
+							"type": "reference"
 						},
 						"comparison": "in",
 						"val2": {
-							"value": "listOfWords"
+							"value": "listOfWords",
+							"type": "reference"
 						}
 					}
 				]
@@ -303,16 +330,16 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-		    "value": "default",
-		    "type": "literal"
+			"value": "default",
+			"type": "literal"
 		}
 	},
 	"basicTableEq": {
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "34",
-		    "type": "literal"
+			"value": "34",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -320,8 +347,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "0",
-		    "type": "literal"
+			"value": "0",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -329,8 +356,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "100",
-		    "type": "literal"
+			"value": "100",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -338,8 +365,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "words",
-		    "type": "literal"
+			"value": "words",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -360,8 +387,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "cool",
-						    "type": "literal"
+							"value": "cool",
+							"type": "literal"
 						}
 					}
 				]
@@ -373,8 +400,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -386,8 +413,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -408,8 +435,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -421,8 +448,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -434,8 +461,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "cool",
-						    "type": "literal"
+							"value": "cool",
+							"type": "literal"
 						}
 					}
 				]
@@ -456,8 +483,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -469,8 +496,8 @@
 						"val1": "cool",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -493,10 +520,7 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": {
-						    "value": "cool",
-						    "type": "literal"
-						},
+						"val2": "cool",
 						"val2Path": ""
 					}
 				]
@@ -509,10 +533,7 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": {
-						    "value": "nice",
-						    "type": "literal"
-						},
+						"val2": "nice",
 						"val2Path": ""
 					}
 				]
@@ -525,10 +546,7 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": {
-						    "value": "nice",
-						    "type": "literal"
-						},
+						"val2": "nice",
 						"val2Path": ""
 					}
 				]
@@ -551,10 +569,7 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": {
-						    "value": "nice",
-						    "type": "literal"
-						},
+						"val2": "nice",
 						"val2Path": ""
 					}
 				]
@@ -567,10 +582,7 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": {
-						    "value": "nice",
-						    "type": "literal"
-						},
+						"val2": "nice",
 						"val2Path": ""
 					}
 				]
@@ -583,10 +595,7 @@
 						"val1": "nice",
 						"val1Path": "",
 						"comparison": "eq",
-						"val2": {
-						    "value": "cool",
-						    "type": "literal"
-						},
+						"val2": "cool",
 						"val2Path": ""
 					}
 				]
@@ -602,16 +611,14 @@
 		"value": [
 			{
 				"output": {
-					"value": "nice"
+					"value": "nice",
+					"type": "reference"
 				},
 				"conditions": [
 					{
 						"val1": "nice",
 						"comparison": "eq",
-						"val2": {
-						    "value": "nice",
-						    "type": "literal"
-						}
+						"val2": "nice"
 					}
 				]
 			},
@@ -622,8 +629,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -644,23 +651,24 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
 			},
 			{
 				"output": {
-					"value": "nice"
+					"value": "nice",
+					"type": "reference"
 				},
 				"conditions": [
 					{
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "nice",
-						    "type": "literal"
+							"value": "nice",
+							"type": "literal"
 						}
 					}
 				]
@@ -681,8 +689,8 @@
 						"val1": "nice",
 						"comparison": "eq",
 						"val2": {
-						    "value": "cool",
-						    "type": "literal"
+							"value": "cool",
+							"type": "literal"
 						}
 					}
 				]
@@ -691,7 +699,8 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-			"value": "nice"
+			"value": "nice",
+			"type": "reference"
 		}
 	},
 	"expressionLiteral": {
@@ -707,8 +716,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "30",
-		    "type": "literal"
+			"value": "30",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -719,7 +728,8 @@
 		"varType": "expression",
 		"vars": {
 			"x": {
-				"value": "var"
+				"value": "var",
+				"type": "reference"
 			}
 		}
 	},
@@ -734,8 +744,8 @@
 						"val1": "1",
 						"comparison": "eq",
 						"val2": {
-						    "value": "1",
-						    "type": "literal"
+							"value": "1",
+							"type": "literal"
 						}
 					}
 				]
@@ -752,12 +762,14 @@
 		"varType": "expression",
 		"functions": [
 			{
-				"value": "math.function"
+				"value": "math.function",
+				"type": "reference"
 			}
 		],
 		"vars": {
 			"x": {
-				"value": "var"
+				"value": "var",
+				"type": "reference"
 			}
 		}
 	},
@@ -775,12 +787,14 @@
 		"functions": [
 			"c(x) = 5 * x",
 			{
-				"value": "math.functions"
+				"value": "math.functions",
+				"type": "reference"
 			}
 		],
 		"vars": {
 			"x": {
-				"value": "var"
+				"value": "var",
+				"type": "reference"
 			}
 		}
 	},
@@ -794,7 +808,8 @@
 		"name": "expression",
 		"scope": "global",
 		"value": {
-			"value": "math.expression1"
+			"value": "math.expression1",
+			"type": "reference"
 		},
 		"varType": "expression",
 		"vars": {
@@ -820,7 +835,8 @@
 		"varType": "expression",
 		"functions": [
 			{
-				"value": "no"
+				"value": "no",
+				"type": "reference"
 			}
 		],
 		"vars": {
@@ -831,8 +847,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "nice",
-		    "type": "literal"
+			"value": "nice",
+			"type": "literal"
 		},
 		"varType": "cisab"
 	},
@@ -847,7 +863,8 @@
 						"val1": "cool",
 						"comparison": "in",
 						"val2": {
-							"value": "list"
+							"value": "list",
+							"type": "reference"
 						}
 					}
 				]
@@ -856,8 +873,8 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-		    "value": "default",
-		    "type": "literal"
+			"value": "default",
+			"type": "literal"
 		}
 	},
 	"tableFullRefs": {
@@ -871,7 +888,8 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "nice"
+							"value": "nice",
+							"type": "reference"
 						},
 						"comparison": "eq",
 						"val2": "not cool"
@@ -882,7 +900,8 @@
 		"varType": "table",
 		"priority": "first",
 		"default": {
-			"value": "nice"
+			"value": "nice",
+			"type": "reference"
 		}
 	},
 	"fullTableRefOutput": {
@@ -904,10 +923,7 @@
 				]
 			}
 		],
-		"default": {
-		    "value": "cool",
-		    "type": "literal"
-		},
+		"default": "cool",
 		"defaultPath": "nice",
 		"priority": "first"
 	},
@@ -916,7 +932,8 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "scope1"
+				"value": "scope1",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -925,8 +942,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "nice",
-		    "type": "literal"
+			"value": "nice",
+			"type": "literal"
 		},
 		"varType": "table"
 	},
@@ -939,11 +956,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list"
+							"value": "list",
+							"type": "reference"
 						},
 						"comparison": "eq",
 						"val2": {
-							"value": "list2"
+							"value": "list2",
+							"type": "reference"
 						}
 					}
 				]
@@ -953,11 +972,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list"
+							"value": "list",
+							"type": "reference"
 						},
 						"comparison": "lt",
 						"val2": {
-							"value": "var"
+							"value": "var",
+							"type": "reference"
 						}
 					}
 				]
@@ -967,11 +988,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "list"
+							"value": "list",
+							"type": "reference"
 						},
 						"comparison": "gt",
 						"val2": {
-							"value": "var"
+							"value": "var",
+							"type": "reference"
 						}
 					}
 				]
@@ -981,11 +1004,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "var2"
+							"value": "var2",
+							"type": "reference"
 						},
 						"comparison": "gt",
 						"val2": {
-							"value": "list"
+							"value": "list",
+							"type": "reference"
 						}
 					}
 				]
@@ -995,11 +1020,13 @@
 				"conditions": [
 					{
 						"val1": {
-							"value": "sublist"
+							"value": "sublist",
+							"type": "reference"
 						},
 						"comparison": "in",
 						"val2": {
-							"value": "list"
+							"value": "list",
+							"type": "reference"
 						}
 					}
 				]
@@ -1007,8 +1034,8 @@
 		],
 		"varType": "table",
 		"default": {
-		    "value": "default",
-		    "type": "literal"
+			"value": "default",
+			"type": "literal"
 		},
 		"priority": "first"
 	},
@@ -1017,7 +1044,8 @@
 		"scope": "global",
 		"value": [
 			{
-				"value": "list"
+				"value": "list",
+				"type": "reference"
 			}
 		],
 		"varType": "list"
@@ -1032,8 +1060,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "10",
-		    "type": "literal"
+			"value": "10",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -1041,8 +1069,8 @@
 		"name": "var",
 		"scope": "global",
 		"value": {
-		    "value": "0",
-		    "type": "literal"
+			"value": "0",
+			"type": "literal"
 		},
 		"varType": "basic"
 	},
@@ -1050,8 +1078,8 @@
 		"name": "var2",
 		"scope": "global",
 		"value": {
-		    "value": "10",
-		    "type": "literal"
+			"value": "10",
+			"type": "literal"
 		},
 		"varType": "basic"
 	}
