@@ -176,6 +176,10 @@ export interface AllVars {
   [name: string]: Literal | TableData | OutputScope;
 }
 
+export interface AllVarsGlobalNotRoot extends AllVars {
+  [name: string]: OutputScope;
+}
+
 export interface OutputScope {
   [name: string]: Literal | TableData;
 }
@@ -977,10 +981,12 @@ export class UserVars {
 
   /**
    * Returns the values of all variables, structured, optionally with full TableData
-   * @param {boolean} flat - Whether the output data should be a flat mapping of paths to literals, or scopes should be entries containing values
-   * @param {boolean} full - Whether the variable should be fully evaluated if it's a table, will return TableData
+   * @param {boolean} globalRoot - Whether global variables should be in a scope called "global" or on their own
+   * @param {boolean} flat       - Whether the output data should be a flat mapping of paths to literals, or scopes should be entries containing values
+   * @param {boolean} full       - Whether the variable should be fully evaluated if it's a table, will return TableData
+   * @returns {AllVars | AllVarsFlat} All evaluated variable data
    */
-  getAllVars(flat?: boolean, full?: boolean): AllVars | AllVarsFlat {
+  getAllVars(globalRoot: boolean = true, flat?: boolean, full?: boolean): AllVars | AllVarsFlat {
     if (flat) {
       const output: AllVarsFlat = {};
 
@@ -988,7 +994,8 @@ export class UserVars {
         let current = this.vars[i];
 
         if (isVar(current)) {
-          output[i] = this.getVar(i, full);
+          if (!globalRoot) output[`global.${i}`] = this.getVar(i, full);
+          else output[i] = this.getVar(i, full);
         } else {
           for (let e of Object.keys(current)) {
             output[`${i}.${e}`] = this.getVar(`${i}.${e}`, full);
@@ -998,13 +1005,16 @@ export class UserVars {
 
       return output;
     } else {
-      const output: AllVars = {};
+      let output: AllVars = {};
+
+      if (!globalRoot) output.global = {};
 
       for (let i of Object.keys(this.vars)) {
         let current = this.vars[i];
 
         if (isVar(current)) {
-          output[i] = this.getVar(i, full);
+          if (!globalRoot) (<AllVarsGlobalNotRoot>output).global[i] = this.getVar(i, full);
+          else output[i] = this.getVar(i, full);
         } else {
           output[i] = {} as OutputScope;
 
