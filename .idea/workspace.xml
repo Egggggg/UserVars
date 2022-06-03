@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7340ba55-f350-41d3-8198-f4feaee82f96" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/UserVars.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/user-vars.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/user-vars.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/user-vars.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/tests/user-vars.test.ts" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="29zSNlA9WYmh61dxKYUbgp9S0YL" />
+  <component name="ProjectViewState">
+    <option name="autoscrollToSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "javascript.nodejs.core.library.configured.version": "16.13.0",
+    "javascript.nodejs.core.library.typings.version": "16.11.38",
+    "last_opened_file_path": "C:/Users/mrhum/Projects/uvTesting",
+    "nodejs.jest.jest_package": "C:/Users/mrhum/Projects/UserVars/node_modules/jest",
+    "nodejs_interpreter_path": "wsl://Ubuntu@/home/bee/.nvm/versions/node/v16.13.0/bin/node",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\mrhum\\Projects\\UserVars\\node_modules\\prettier",
+    "settings.editor.selected.configurable": "duplicates.index",
+    "ts.external.directory.path": "C:\\Users\\mrhum\\Projects\\UserVars\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Jest.getVar">
+    <configuration name="getVar" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/tests/user-vars.test.ts" />
+      <test-names>
+        <test-name value="getVar" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="getVar.Expression" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/tests/user-vars.test.ts" />
+      <test-names>
+        <test-name value="getVar" />
+        <test-name value="Expression" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="getVar.Expression.Expression function" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs />
+      <scope-kind value="TEST" />
+      <test-file value="$PROJECT_DIR$/tests/user-vars.test.ts" />
+      <test-names>
+        <test-name value="getVar" />
+        <test-name value="Expression" />
+        <test-name value="Expression function" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="getVar.Expression.Expression with reference for value" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs />
+      <scope-kind value="TEST" />
+      <test-file value="$PROJECT_DIR$/tests/user-vars.test.ts" />
+      <test-names>
+        <test-name value="getVar" />
+        <test-name value="Expression" />
+        <test-name value="Expression with reference for value" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="getVar.List.Scoped list of refs" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$" />
+      <envs />
+      <scope-kind value="TEST" />
+      <test-file value="$PROJECT_DIR$/tests/user-vars.test.ts" />
+      <test-names>
+        <test-name value="getVar" />
+        <test-name value="List" />
+        <test-name value="Scoped list of refs" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Jest.getVar" />
+        <item itemvalue="Jest.getVar.List.Scoped list of refs" />
+        <item itemvalue="Jest.getVar.Expression.Expression with reference for value" />
+        <item itemvalue="Jest.getVar.Expression.Expression function" />
+        <item itemvalue="Jest.getVar.Expression" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7340ba55-f350-41d3-8198-f4feaee82f96" name="Changes" comment="" />
+      <created>1654114384896</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1654114384896</updated>
+      <workItem from="1654114386900" duration="6849000" />
+      <workItem from="1654293471913" duration="2043000" />
+    </task>
+    <task id="LOCAL-00001" summary="Make typed values optional">
+      <created>1654121535217</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1654121535217</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Add prettier config">
+      <created>1654121548106</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1654121548106</updated>
+    </task>
+    <task id="LOCAL-00003" summary="globalRoot argument for getAllVars">
+      <created>1654294736829</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1654294736829</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Make typed values optional" />
+    <MESSAGE value="Add prettier config" />
+    <MESSAGE value="globalRoot argument for getAllVars" />
+    <option name="LAST_COMMIT_MESSAGE" value="globalRoot argument for getAllVars" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/UserVars$getVar.info" NAME="getVar Coverage Results" MODIFIED="1654121368152" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="JestJavaScriptTestRunnerCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+</project>
