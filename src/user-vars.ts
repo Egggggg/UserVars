@@ -937,7 +937,7 @@ export class UserVars {
     const result = get(this.vars, normalizePath(path), null);
 
     if (isVar(result)) {
-      return result;
+      return { ...result };
     } else if (result) {
       throw new TypeError(`Variable ${path} is malformed (is it a scope?)`);
     }
