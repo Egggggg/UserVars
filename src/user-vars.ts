@@ -225,7 +225,7 @@ function parseLtGt(arg1: Literal, arg2: Literal) {
  * @param {string} [scope="global"] - The scope the path is relative to
  * @returns {string} The normalized path
  */
-function normalizePath(path: string, scope: string = "global"): string {
+export function normalizePath(path: string, scope: string = "global"): string {
   let up = false;
 
   if (path.startsWith("../") && scope !== "global") {
